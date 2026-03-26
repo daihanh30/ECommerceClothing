@@ -1,0 +1,233 @@
+﻿@model ECommerceClothing.Models.Dashboard
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0">Dashboard Overview</h2>
+        <a asp-controller="Admin" asp-action="ExportDashboardReport" class="btn btn-dark btn-sm shadow-sm">
+            <i class="fa-solid fa-file-export me-1"></i> Export Report
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                <small class="text-uppercase fw-bold text-muted">Total Revenue</small>
+                <h3 class="fw-bold mb-0 text-dark">@(Model.TotalRevenue.ToString("#,##0")) VND</h3>
+                <i class="fa-solid fa-money-bill-trend-up position-absolute end-0 bottom-0 m-3 text-light fs-1"></i>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                <small class="text-uppercase fw-bold text-muted">Total Orders</small>
+                <h3 class="fw-bold mb-0 text-dark">@Model.TotalOrders</h3>
+                <i class="fa-solid fa-cart-shopping position-absolute end-0 bottom-0 m-3 text-light fs-1"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                <small class="text-uppercase fw-bold text-muted">Customers</small>
+                <h3 class="fw-bold mb-0 text-dark">@Model.TotalCustomers</h3>
+                <i class="fa-solid fa-users position-absolute end-0 bottom-0 m-3 text-light fs-1"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                <small class="text-uppercase fw-bold text-muted">Products</small>
+                <h3 class="fw-bold mb-0 text-dark">@Model.TotalProducts</h3>
+                <i class="fa-solid fa-shirt position-absolute end-0 bottom-0 m-3 text-light fs-1"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 g-3">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-4">
+                <h6 class="fw-bold mb-4 text-uppercase text-muted">Revenue Analytics (Last 7 Days)</h6>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h6 class="fw-bold mb-4 text-uppercase text-muted">Order Status</h6>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0 text-uppercase">Recent Orders</h6>
+            <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="text-primary small text-decoration-none fw-bold">
+                View All Orders <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3 border-0">Order ID</th>
+                            <th class="border-0">Customer</th>
+                            <th class="border-0 text-center">Total Amount</th>
+                            <th class="border-0 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentOrders != null && Model.RecentOrders.Any())
+                        {
+                            foreach (var o in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">#@o.Id.ToString("D5")</td>
+
+                                    <td>
+                                        <div class="fw-semibold text-dark">@o.FullName</div>
+                                        <div class="small text-muted">@o.PhoneNumber</div>
+                                    </td>
+
+                                    <td class="fw-bold text-center text-danger">@(o.TotalAmount.ToString("#,##0")) VND</td>
+
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill @GetBadgeClass(o.Status) px-3 py-1">@o.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted fst-italic">No recent orders to display.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* 👉 ĐÃ FIX: Đưa @functions ra ngoài thẻ div cha *@
+@functions {
+    string GetBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Paid" => "bg-primary",
+            "Shipping" => "bg-info text-dark",
+            "Delivered" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 🚨 CHÚ Ý: 3 dòng này cực kỳ quan trọng để kiểm tra xem C# có nạp đúng số liệu hay không!
+        console.log("=== DATA TỪ C# CHẠY XUỐNG ===");
+        console.log("Nhãn trục ngang (Ngày):", @Html.Raw(Json.Serialize(Model.ChartLabels)));
+        console.log("Data doanh thu (Tiền):", @Html.Raw(Json.Serialize(Model.ChartData)));
+        console.log("Data biểu đồ tròn (Số lượng):", @Html.Raw(Json.Serialize(Model.OrderStatusCounts)));
+
+        // ----------------------------------------------------
+        // 1. CẤU HÌNH BIỂU ĐỒ DOANH THU (Line Chart)
+        // ----------------------------------------------------
+        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctxRevenue, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.ChartLabels)),
+                datasets: [{
+                    label: 'Revenue',
+                    data: @Html.Raw(Json.Serialize(Model.ChartData)),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0d6efd'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.parsed.y;
+                                return ' Revenue: ' + new Intl.NumberFormat('en-US').format(value) + ' VND';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [5, 5] },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000) + 'M'; 
+                                }
+                                if (value >= 1000) {
+                                    return (value / 1000) + 'k'; 
+                                }
+                                return value;
+                            }
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ----------------------------------------------------
+        // 2. CẤU HÌNH BIỂU ĐỒ TRÒN (Order Status Doughnut Chart)
+        // ----------------------------------------------------
+        const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCategory, {
+            type: 'doughnut',
+            data: {
+                labels: ['Delivered', 'Cancelled'],
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.OrderStatusCounts)),
+                    backgroundColor: [
+                        '#198754', // Xanh lá cho Delivered
+                        '#dc3545'  // Đỏ cho Cancelled
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    </script>
+}

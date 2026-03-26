@@ -1,0 +1,1072 @@
+﻿/* =====================================================
+   GLOBAL
+===================================================== */
+html {
+    font-size: 14px;
+    scroll-behavior: smooth;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+/* Focus outline (Bootstrap override) */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* =====================================================
+   LOGO
+===================================================== */
+.logo-text {
+    font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #111;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+    .logo-text:hover {
+        color: #000;
+    }
+
+.logo-dot {
+    font-size: 14px;
+    vertical-align: top;
+    margin-left: 2px;
+}
+
+@media (max-width: 768px) {
+    .logo-text {
+        font-size: 22px;
+        letter-spacing: 2px;
+    }
+}
+
+/* =====================================================
+   AUTH (LOGIN / REGISTER) – CLEAN VERSION
+===================================================== */
+
+.auth-page {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e5e5;
+}
+
+/* BOX */
+.auth-box {
+    width: 100%;
+    max-width: 720px; /* 👈 gọn, không dư */
+    background: #f1f1f1;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+}
+
+/* LEFT – FORM */
+.auth-left {
+    width: 100%;
+    padding: 70px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+    .auth-left h2 {
+        font-weight: 700;
+        margin-bottom: 30px;
+        color: #222;
+    }
+
+/* INPUT GROUP */
+.auth-group {
+    margin-bottom: 18px;
+}
+
+    .auth-group label {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .auth-group input {
+        width: 100%;
+        padding: 12px 18px;
+        border-radius: 30px;
+        border: 1px solid #ccc;
+        background: #fff;
+        outline: none;
+    }
+
+/* FORGOT */
+.auth-forgot {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+    .auth-forgot a {
+        font-size: 13px;
+        color: #666;
+        text-decoration: none;
+    }
+
+/* BUTTON */
+.auth-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 30px;
+    background: #444;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+    .auth-btn:hover {
+        background: #222;
+    }
+
+.register-page .auth-btn {
+    margin-top: 16px; 
+}
+
+/* SIGNUP */
+.auth-signup {
+    text-align: center;
+    font-size: 14px;
+}
+
+    .auth-signup a {
+        color: #000;
+        font-weight: 600;
+    }
+
+/* =====================================================
+   RIGHT IMAGE – TẮT HOÀN TOÀN
+===================================================== */
+
+.auth-right {
+    display: none;
+}
+
+
+/* =====================================================
+   HOME HERO (BANNER)
+===================================================== */
+.home-hero {
+    position: relative;
+    min-height: 70vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-image: url('/images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+    .home-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.30);
+        z-index: 1;
+    }
+
+    .home-hero h1,
+    .home-hero p,
+    .home-hero .hero-btn {
+        position: relative;
+        z-index: 2;
+        color: #fff;
+    }
+
+    .home-hero h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .home-hero p {
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
+
+/* New Collection label */
+.hero-label {
+    position: absolute;
+    bottom: 30px;
+    left: 40px;
+    z-index: 2;
+    color: #fff;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Button */
+.hero-btn {
+    background: #444;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .hero-btn:hover {
+        background: #222;
+    }
+
+/* =====================================================
+   NAV SEARCH
+===================================================== */
+.nav-search {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+    padding: 6px 16px;
+    background-color: #fff;
+    height: 38px;
+}
+
+    .nav-search input {
+        border: none;
+        outline: none;
+        font-size: 14px;
+        width: 420px;
+        color: #333;
+    }
+
+    .nav-search button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .nav-search:focus-within {
+        border-color: #000;
+    }
+
+
+
+/* ================= PAGE ================= */
+.product-page {
+    display: none;
+}
+
+    .product-page.active {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+/* ================= SECTION ================= */
+.product-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 40px;
+}
+
+/* ================= PRODUCT ITEM ================= */
+.product-item {
+    width: 100%;
+/*    text-align: center;*/
+}
+    /* ================= IMAGE ================= */
+    .product-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4; /* 👈 KHUNG ĐỨNG */
+    background: #f6f6f6;
+    overflow: hidden;
+}
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+/* ================= ACTION BUTTONS ================= */
+.product-actions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    height: 40px;
+    background: #3a3a3a;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: 0.3s ease;
+    pointer-events: none;
+}
+
+    .product-actions a,
+    .product-actions button {
+        flex: 1;
+        height: 100%;
+        border: none;
+        background: transparent;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+/* Hover hiện nút */
+.product-item:hover .product-actions {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* hover */
+.product-actions a:hover,
+.product-actions button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+
+
+/* ================= INFO ================= */
+.product-info {
+    margin-top: 14px;
+}
+
+    .product-info h4 {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .product-info p {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    .product-section {
+        padding: 20px 16px;
+    }
+}
+
+
+
+/* =====================================================
+   PAGINATION
+===================================================== */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+}
+
+.page-number {
+    font-size: 14px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+    .page-number.active {
+        color: #000;
+        font-weight: 600;
+    }
+
+.page-arrow {
+    font-size: 16px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+    .page-arrow:hover,
+    .page-number:hover {
+        color: #000;
+    }
+
+
+/* PASSWORD EYE */
+.password-group {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    top: 42px;
+    cursor: pointer;
+    color: #777;
+    font-size: 16px;
+}
+
+    .toggle-password:hover {
+        color: #000;
+    }
+
+
+
+/* ===== REGISTER SUCCESS POPUP ===== */
+.success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.success-box {
+    background: #fff;
+    width: 320px;
+    padding: 30px 24px;
+    border-radius: 14px;
+    text-align: center;
+    animation: popupScale 0.3s ease;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #2ecc71;
+    color: #fff;
+    font-size: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.success-text {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.success-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 999px;
+    border: none;
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .success-btn:hover {
+        background: #333;
+    }
+
+@keyframes popupScale {
+    from {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ================= USER DROPDOWN ARROW ================= */
+.user-dropdown .dropdown-arrow {
+    font-size: 14px;
+    color: #555;
+    transition: transform 0.25s ease;
+}
+
+/* Khi dropdown mở */
+.user-dropdown.show .dropdown-arrow {
+    transform: rotate(180deg);
+}
+/* ================= USER DROPDOWN MENU ================= */
+.user-dropdown .dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid #eee;
+    background: #fff;
+    padding: 8px 0;
+    min-width: 180px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* Item */
+.user-dropdown .dropdown-item {
+    font-size: 14px;
+    padding: 10px 18px;
+    color: #333;
+    transition: background 0.2s ease;
+}
+
+    /* Hover */
+    .user-dropdown .dropdown-item:hover {
+        background: #f5f5f5;
+        color: #000;
+    }
+
+/* Divider */
+.user-dropdown .dropdown-divider {
+    margin: 6px 0;
+}
+
+/* Logout màu nhạt, không gắt */
+.user-dropdown .dropdown-item.text-danger {
+    color: #777 !important;
+}
+
+    .user-dropdown .dropdown-item.text-danger:hover {
+        background: #f2f2f2;
+        color: #000 !important;
+    }
+
+/* ================= chạy chữ ================= */
+.marquee-section {
+    height: 180px; /* khoảng trống vừa phải */
+    display: flex;
+    align-items: center; /* căn giữa theo chiều dọc */
+    overflow: hidden;
+    background: #fff;
+}
+
+.marquee {
+    display: flex;
+    width: max-content;
+}
+
+.marquee-track {
+    display: flex;
+    animation: marquee 22s linear infinite;
+}
+
+    .marquee-track span {
+        font-size: clamp(90px, 11vw, 90px);
+        font-weight: 600;
+        letter-spacing: 14px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: transparent;
+        -webkit-text-stroke: 1.5px #b8b8b8;
+        margin-right: 160px;
+    }
+
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+
+/* Chỉ áp dụng cho các link nằm trong phần menu trái (navbar-nav) */
+.navbar-nav .nav-link {
+    position: relative;
+    text-decoration: none;
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+    /* Hiệu ứng gạch chân - Chỉ dành cho menu trái */
+    .navbar-nav .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -5px; /* Chỉnh lại khoảng cách cho đẹp */
+        left: 0;
+        background-color: #000;
+        transition: width 0.3s ease;
+    }
+
+    /* Trạng thái Active và Hover - Chỉ dành cho menu trái */
+    .navbar-nav .nav-link:hover::after,
+    .navbar-nav .nav-link.active::after {
+        width: 100%;
+    }
+
+/* Loại bỏ gạch chân cho các link khác (như Hi, Hanh) */
+.ms-auto .nav-link::after {
+    display: none !important;
+}
+
+
+/*MINICART*/
+/* FILE: wwwroot/css/minicart.css */
+
+/* 1. Backdrop (Lớp nền mờ đen sau lưng) */
+.offcanvas-backdrop.show {
+    opacity: 0.6 !important; /* Độ mờ */
+    background-color: #000 !important; /* Màu đen */
+}
+
+/* 2. Khung Sidebar */
+.offcanvas-end {
+    width: 450px !important; /* Rộng giống Hades */
+    border-left: none;
+}
+
+/* 3. Header */
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+}
+
+.cart-title {
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.btn-close-cart {
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    color: #000;
+    transition: transform 0.2s;
+}
+
+    .btn-close-cart:hover {
+        transform: scale(1.1);
+    }
+
+/* 4. Body (Danh sách sản phẩm) */
+.cart-body {
+    padding: 0 30px;
+    overflow-y: auto;
+    flex-grow: 1;
+    /* Ẩn thanh cuộn cho đẹp (Chrome/Safari) */
+    scrollbar-width: thin;
+}
+
+    .cart-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .cart-body::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 3px;
+    }
+
+/* 5. Từng món hàng (Item) */
+.cart-item {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #f1f1f1;
+    position: relative;
+}
+
+/* Ảnh dọc tỉ lệ 3:4 */
+.cart-item-img {
+    width: 80px;
+    height: 106px;
+    object-fit: cover;
+    display: block;
+    background-color: #f9f9f9;
+}
+
+/* Thông tin bên phải */
+.cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cart-item-name {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #000;
+    text-decoration: none;
+    line-height: 1.4;
+    padding-right: 20px; /* Chừa chỗ cho nút X */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Cắt bớt nếu tên quá dài 2 dòng */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cart-item-variant {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* Hàng dưới: Số lượng & Giá */
+.cart-item-bottom {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: auto;
+}
+
+/* Ô hiển thị số lượng (Xám nhạt) */
+.qty-display-box {
+    background: #f3f3f3;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+    min-width: 32px;
+    text-align: center;
+}
+
+.cart-item-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000;
+}
+
+/* Nút Xóa (X nhỏ) */
+.btn-remove-item {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #000;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+    .btn-remove-item:hover {
+        opacity: 1;
+        color: #ff0000;
+    }
+
+/* 6. Footer */
+.cart-footer {
+    padding: 25px 30px;
+    border-top: 1px solid #f1f1f1;
+    background: #fff;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.cart-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.btn-cart-black {
+    background: #000;
+    color: #fff;
+    text-align: center;
+    padding: 14px 0;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    border: none;
+    display: block;
+}
+
+    .btn-cart-black:hover {
+        opacity: 0.8;
+        color: #fff;
+    }
+
+
+
+/* CSS CHECKOUT FORM   */
+/* Nút Checkout trong Modal */
+.btn-checkout-modal {
+    width: 100%;
+    background-color: #000; /* Màu đen Hades */
+    color: #fff;
+    padding: 15px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+    .btn-checkout-modal:hover {
+        background-color: #dc3545; /* Hover chuyển màu đỏ */
+        color: #fff;
+    }
+
+/* =====================================================
+   FIX STYLE POPUP (DÁN VÀO CUỐI FILE SITE.CSS)
+   ===================================================== */
+
+/* 1. Nút ADD TO CART & MUA NGAY (Phải là khối đen) */
+.btn-add-cart-qv,
+.btn-dark-modal {
+    display: block !important;
+    width: 100% !important;
+    padding: 15px 0 !important;
+    background-color: #000 !important; /* Màu đen */
+    color: #fff !important; /* Chữ trắng */
+    border: none !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 16px !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    margin-top: 20px !important;
+    text-align: center !important;
+    transition: background 0.2s;
+}
+
+    .btn-add-cart-qv:hover,
+    .btn-dark-modal:hover {
+        background-color: #333 !important; /* Hover xám đậm */
+        color: #fff !important;
+    }
+
+/* 2. Nút chọn Size (Vuông vức, đẹp hơn) */
+.btn-size-qv {
+    min-width: 45px;
+    height: 45px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 5px; /* Cách nhau xíu */
+}
+
+    /* Khi được chọn (Active) */
+    .btn-size-qv.active {
+        background-color: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+    }
+
+/* 3. Ô Số lượng (Gộp lại thành 1 khối) */
+/*.quantity-box {
+    display: flex !important;
+    border: 1px solid #000 !important;*/ /* Viền đen cho ngầu */
+    /*width: fit-content !important;
+    height: 45px !important;
+}
+
+.btn-qty {
+    width: 40px !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+}
+
+#qvQtyInput {
+    border: none !important;
+    text-align: center !important;
+    width: 50px !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+}*/
+/* =====================================================
+   FIX STYLE Ô SỐ LƯỢNG NHỎ GỌN (Dán đè vào site.css)
+   ===================================================== */
+
+/* 1. Khung hộp: Giảm chiều cao từ 45px xuống 32px */
+.quantity-box {
+    display: flex !important;
+    border: 1px solid #000 !important;
+    width: fit-content !important;
+    height: 32px !important; /* 👈 Chỉnh số này để tăng/giảm độ cao */
+    align-items: center !important;
+}
+
+/* 2. Nút Cộng/Trừ: Nhỏ lại cho cân đối */
+.btn-qty {
+    width: 30px !important; /* Giảm độ rộng nút */
+    height: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 16px !important; /* Chữ nhỏ lại xíu */
+    font-weight: normal !important; /* Bỏ đậm cho thanh thoát */
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.2s;
+}
+
+    .btn-qty:hover {
+        background-color: #f0f0f0 !important;
+    }
+
+/* 3. Ô nhập số ở giữa */
+#qvQtyInput {
+    border: none !important;
+    text-align: center !important;
+    width: 40px !important; /* Giảm độ rộng */
+    height: 100% !important;
+    font-weight: bold !important;
+    font-size: 14px !important; /* Chữ số nhỏ vừa vặn */
+    padding: 0 !important;
+}
+
+
+
+
+
+/*Nhập voucher tay*/
+/* Container cố định ở đáy màn hình */
+.voucher-ticker-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #000; /* Nền đen tuyền */
+    color: #fff; /* Chữ trắng cho sang */
+    z-index: 1040;
+    overflow: hidden;
+    padding: 12px 0; /* Tăng nhẹ độ rộng thanh cho thoáng */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border-top: 1px solid #333; /* Đường viền mảnh để tách biệt với nội dung web */
+}
+
+/* Wrapper để dàn hàng ngang */
+.ticker-wrapper {
+    display: flex;
+    width: fit-content;
+}
+
+/* Nội dung chạy */
+.ticker-item {
+    white-space: nowrap;
+    padding-right: 50px; /* Khoảng cách giữa các lần lặp */
+    display: inline-block;
+    font-weight: 700; /* In đậm */
+    font-size: 13px; /* Cỡ chữ vừa phải, không bị thô */
+    letter-spacing: 1.5px; /* Giãn chữ cho đúng style high-end */
+    text-transform: uppercase;
+    animation: ticker-loop 150s linear infinite; /* Chỉnh 25s để tốc độ vừa mắt */
+}
+
+    /* Làm nổi bật mã Voucher */
+    .ticker-item .code {
+        background-color: #fff; /* Nền trắng */
+        color: #000; /* Chữ đen */
+        padding: 2px 10px;
+        margin: 0 5px;
+        border-radius: 0; /* Để vuông vức cho tối giản */
+        font-weight: 900;
+    }
+
+/* Hiệu ứng chạy vô tận */
+@keyframes ticker-loop {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Đẩy nhẹ Footer hoặc nội dung web lên để không bị thanh này che mất */
+body {
+    margin-bottom: 45px;
+}
+
+/* Tắt hiệu ứng chạy khi user rê chuột vào để họ dễ copy mã */
+.voucher-ticker-container:hover .ticker-item {
+    animation-play-state: paused;
+}
+
+/*nút back to profile*/
+.back-link {
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+    .back-link:hover {
+        opacity: 1;
+        color: #000 !important;
+        transform: translateX(-5px); /* Hiệu ứng nhích nhẹ sang trái khi hover */
+    }
+
+
+/*eye icon profile changes password*/
+/* Container bao bọc ô nhập và icon */
+.password-toggle-wrapper {
+    position: relative;
+}
+
+    /* Kiểu dáng cho ô nhập (cần thêm padding bên phải để text không đè lên icon) */
+    .password-toggle-wrapper input[type="password"] {
+        padding-right: 40px; /* Chừa chỗ cho icon */
+    }
+
+/* Kiểu dáng cho icon nhắm/mở mắt */
+.password-toggle-icon {
+    position: absolute;
+    right: 15px; /* Cách lề phải ô nhập */
+    top: 50%;
+    transform: translateY(-50%); /* Căn giữa theo chiều dọc */
+    cursor: pointer;
+    color: #888; /* Màu icon */
+}

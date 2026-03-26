@@ -1,0 +1,184 @@
+﻿@model ECommerceClothing.Models.Product
+@{
+    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Add Product";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Add New Product</h5>
+        </div>
+
+        <div class="card-body bg-light">
+            <form asp-area="Admin"
+                  asp-controller="Admin"
+                  asp-action="CreateProduct"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Product Name</label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Category</label>
+                        <select asp-for="CategoryId" class="form-select"
+                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))"
+                                id="CategorySelect">
+                            <option value="">Select Category</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Product Type</label>
+                        <select asp-for="ProductTypeId" class="form-select"
+                                asp-items="@(new SelectList(ViewBag.ProductTypes, "ProductTypeId", "Name"))"
+                                id="TypeSelect">
+                            <option value="">Select Type</option>
+                        </select>
+                        <span asp-validation-for="ProductTypeId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Price</label>
+                        <input asp-for="Price" type="number" class="form-control" />
+
+                        <input type="hidden" asp-for="Stock" value="0" />
+                        <input type="hidden" asp-for="Size" id="SizeInput" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Phân loại Size & Số lượng tồn kho</label>
+
+                        <div class="p-3 border rounded bg-white">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="size-item d-flex align-items-center">
+                                        <div class="form-check me-2" style="width: 50px;">
+                                            <input class="form-check-input size-checkbox" type="checkbox" value="S" id="sizeS" name="SelectedSizes">
+                                            <label class="form-check-label fw-bold" for="sizeS">S</label>
+                                        </div>
+                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="size-item d-flex align-items-center">
+                                        <div class="form-check me-2" style="width: 50px;">
+                                            <input class="form-check-input size-checkbox" type="checkbox" value="M" id="sizeM" name="SelectedSizes">
+                                            <label class="form-check-label fw-bold" for="sizeM">M</label>
+                                        </div>
+                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="size-item d-flex align-items-center">
+                                        <div class="form-check me-2" style="width: 50px;">
+                                            <input class="form-check-input size-checkbox" type="checkbox" value="L" id="sizeL" name="SelectedSizes">
+                                            <label class="form-check-label fw-bold" for="sizeL">L</label>
+                                        </div>
+                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="size-item d-flex align-items-center">
+                                        <div class="form-check me-2" style="width: 50px;">
+                                            <input class="form-check-input size-checkbox" type="checkbox" value="XL" id="sizeXL" name="SelectedSizes">
+                                            <label class="form-check-label fw-bold" for="sizeXL">XL</label>
+                                        </div>
+                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>q
+                        <small class="text-muted">Chỉ cần nhập số lượng cho những size có hàng.</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Product Images</label>
+                    <input type="file" name="images" multiple class="form-control" accept="image/*" />
+                    <small class="text-muted">You can select 2–4 images</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-area="Admin" asp-controller="Admin" asp-action="Products" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-dark">
+                        Save Product
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Script xử lý Dropdown động (Cascading Dropdown) - Giữ nguyên của bạn
+    document.getElementById('CategorySelect').addEventListener('change', function() {
+        var categoryId = this.value;
+        var typeSelect = document.getElementById('TypeSelect');
+        typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
+
+        if (categoryId) {
+            fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        var option = document.createElement('option');
+                        option.value = item.id;
+                        option.text = item.name;
+                        typeSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Lỗi lấy dữ liệu:', error));
+        }
+    });
+
+    // 2. Script mới xử lý ẩn hiện ô nhập Stock khi chọn Size
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkboxes = document.querySelectorAll('.size-checkbox');
+        const hiddenInput = document.getElementById('SizeInput'); // Giữ lại cho Model cũ đỡ lỗi
+
+        checkboxes.forEach(chk => {
+            chk.addEventListener('change', function() {
+                // Tìm ô input nhập số lượng nằm cùng hàng (cùng thẻ cha .size-item)
+                const qtyInput = this.closest('.size-item').querySelector('.stock-input');
+
+                if (this.checked) {
+                    qtyInput.classList.remove('d-none'); // Hiện ô nhập
+                    qtyInput.disabled = false; // Bật để gửi dữ liệu đi
+                    qtyInput.required = true; // Bắt buộc phải nhập
+                } else {
+                    qtyInput.classList.add('d-none'); // Ẩn ô nhập
+                    qtyInput.disabled = true; // Vô hiệu hóa không cho gửi đi
+                    qtyInput.required = false;
+                    qtyInput.value = ''; // Xóa số liệu cũ
+                }
+
+                // Cập nhật lại chuỗi "S,M" vào hidden input giống code cũ của bạn
+                const checked = Array.from(checkboxes)
+                                     .filter(c => c.checked)
+                                     .map(c => c.value);
+                hiddenInput.value = checked.join(',');
+            });
+        });
+    });
+</script>

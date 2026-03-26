@@ -1,0 +1,72 @@
+﻿@model List<ECommerceClothing.Models.Product>
+
+@{
+    // Title sẽ lấy từ ViewBag (Tops, Bottoms...) hoặc mặc định là Shop
+    ViewData["Title"] = ViewBag.CategoryName ?? "Shop";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+
+<div class="product-section mt-5" id="product-list">
+    <div class="container">
+
+        <div class="text-center mb-5">
+            <h2 style="font-size: 28px; font-weight: 700; font-family: sans-serif; text-transform:uppercase;">
+                @if (!string.IsNullOrEmpty(ViewBag.SearchQuery))
+                {
+                    <span>SEARCH RESULTS FOR: "@ViewBag.SearchQuery"</span>
+                }
+                else
+                {
+                    <span>@(ViewBag.CategoryName ?? "SHOP ALL")</span>
+                }
+            </h2>
+
+            @if (Model != null)
+            {
+                <p class="text-muted">Found @Model.Count products</p>
+            }
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var p in Model)
+                {
+                    var firstImage = p.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png";
+
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product-card">
+                            <div class="product-image-container">
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.Id">
+                                    <img src="@firstImage" alt="@p.Name" class="product-img" />
+                                </a>
+
+                                <div class="product-actions-overlay">
+                                    <button class="btn-hades btn-buy-now-trigger" data-id="@p.Id">
+                                        BUY NOW
+                                    </button>
+                                    <div class="separator"></div>
+                                    <button class="btn-hades btn-quick-view" data-id="@p.Id">ADD TO CART</button>
+                                </div>
+                            </div>
+
+                            <div class="product-info">
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.Id" class="product-name">@p.Name</a>
+                                <div class="product-price">@((p.Price * 1000).ToString("#,##0")) VND</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <h2 class="mb-4 fw-bold">No products found.</h2>
+                <a href="/" class="btn-hades" style="display:inline-block; width:auto; padding:12px 40px; background:#000; color:#fff;">BACK TO SHOP</a>
+            </div>
+        }
+    </div>
+</div>

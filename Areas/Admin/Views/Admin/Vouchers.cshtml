@@ -1,0 +1,157 @@
+﻿@model IEnumerable<ECommerceClothing.Models.Voucher>
+@{
+    ViewData["Title"] = "Vouchers";
+    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Manage Vouchers</h2>
+    <a asp-action="CreateVoucher" class="btn text-white px-3" style="background-color: #198754;">
+        + New
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@{
+    var currentType = Context.Request.Query["type"].ToString();
+}
+
+<ul class="nav nav-tabs border-0 mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(string.IsNullOrEmpty(currentType) ? "active fw-bold text-success" : "text-secondary")"
+           asp-action="Vouchers">
+            All Vouchers
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentType == "public" ? "active fw-bold text-success" : "text-secondary")"
+           asp-action="Vouchers" asp-route-type="public">
+            Public (List)
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentType == "hidden" ? "active fw-bold text-success" : "text-secondary")"
+           asp-action="Vouchers" asp-route-type="hidden">
+            Hidden (Code Only)
+        </a>
+    </li>
+</ul>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Code</th>
+                        <th>Title</th>
+                        <th>Discount</th>
+                        <th>Usage</th>
+                        <th>Visibility</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var visibilityClass = item.IsPublic ? "public" : "hidden";
+
+                        <tr class="voucher-row" data-visibility="@visibilityClass">
+                            <td class="ps-4 fw-bold">@item.Code</td>
+                            <td>@item.Title</td>
+                            <td>
+                                @if (item.Type == "Percent")
+                                {
+                                    <span class="text-primary fw-bold">@((item.Value * 100).ToString("0"))%</span>
+                                    <br>
+                                }
+                                else
+                                {
+                                    
+                                    <span class="text-primary fw-bold">@item.Value.ToString("#,##0") VND</span>
+                                    <br>
+                                }
+                               
+                                <small class="text-muted">Min: @item.MinOrder.ToString("#,##0") VND</small>
+                            </td>
+                            <td>
+                                @if (item.UsedCount >= item.Quantity)
+                                {
+                                    <span class="fw-bold text-danger">@item.UsedCount</span>
+                                    <span class="text-muted"> / @item.Quantity</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold text-success">@item.UsedCount</span>
+                                    <span class="text-muted"> / @item.Quantity</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsPublic)
+                                {
+                                    <span class="badge bg-success">Public</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Hidden</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.UsedCount >= item.Quantity)
+                                {
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                }
+                                else if (item.EndDate < DateTime.Now)
+                                {
+                                    <span class="badge bg-warning text-dark">Expired</span>
+                                }
+                                else if (!item.IsActive)
+                                {
+                                    <span class="badge bg-dark">Disabled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">Active</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="EditVoucher" asp-route-id="@item.Id" class="btn btn-sm text-white" style="background-color: #198754;"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <button onclick="deleteVoucher(@item.Id, '@item.Code')" class="btn btn-sm text-white" style="background-color: #dc3545;"><i class="bi bi-trash"></i> Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteVoucher(id, code) {
+            if (confirm(`Are you sure you want to delete voucher "${code}"?`)) {
+                fetch(`/Admin/DeleteVoucher/${id}`, {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => alert('An error occurred while deleting!'));
+            }
+        }
+    </script>
+}

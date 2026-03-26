@@ -1,0 +1,21 @@
+﻿<div class="container text-center py-5">
+    <div class="card shadow-sm p-5 border-0 mx-auto" style="max-width: 600px;">
+        <div class="mb-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/148/148767.png" width="80" alt="Success" />
+        </div>
+        <h2 class="fw-bold text-success">ORDER SUCCESSFUL!</h2>
+        <p class="text-muted mt-3">Thank you for your trust and for choosing to shop at Nixoné Store.</p>
+        <p>Your order has been recorded by the system.</p>
+
+        <div class="mt-4">
+            <a href="/" class="btn btn-dark px-4 py-2 rounded-pill">Continue shopping</a>
+            @if (ViewBag.OrderId != null)
+            {
+                @* Sửa href từ /Orders/Details thành /Profile/OrderDetails *@
+                <a href="/Profile/OrderDetails/@ViewBag.OrderId" class="btn btn-outline-success px-4 py-2 rounded-pill ms-2">
+                    <i class="bi bi-eye me-1"></i> View order #@ViewBag.OrderId
+                </a>
+            }
+        </div>
+    </div>
+</div>

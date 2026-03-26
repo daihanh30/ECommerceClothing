@@ -1,0 +1,169 @@
+﻿@model IEnumerable<ECommerceClothing.Models.Category>
+@{
+    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
+
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Manage Categories  </h2>
+
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+        + New
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-bordered align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:80px">ID</th>
+                    <th>Name</th>
+                    <th style="width:220px" class="text-center">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.Id</td>
+                        <td class="fw-semibold">@c.Name</td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <button type="button"
+                                        class="btn btn-success btn-sm px-3"
+                                        onclick="openEditModal('@c.Id', '@c.Name')">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+
+                                @* <a asp-controller="Category" asp-action="Delete"
+                                   asp-route-id="@c.Id"
+                                   class="btn btn-danger btn-sm px-3"
+                                   onclick="return confirm('Delete this category?')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a> *@
+                                <button type="button" class="btn btn-danger btn-sm px-3" onclick="deleteConfirm('@c.Id')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Add Category</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form asp-controller="Category" asp-action="Create" method="post">
+                <div class="modal-body p-4">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Category Name</label>
+                        <input name="Name" class="form-control form-control-lg" placeholder="Enter category name" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <a asp-area="Admin" asp-controller="Admin" asp-action="Categories" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-dark">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Edit Category</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form asp-controller="Category" asp-action="Edit" method="post">
+                <div class="modal-body p-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="edit_id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Category Name</label>
+                        <input name="Name" id="edit_name" class="form-control form-control-lg" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function openEditModal(id, name) {
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_name').value = name;
+        var myModal = new bootstrap.Modal(document.getElementById('editModal'));
+        myModal.show();
+    }
+</script>
+
+<script>
+    // --- 1. XỬ LÝ THÔNG BÁO TỪ SERVER (Thành công / Lỗi) ---
+    // Lấy dữ liệu từ TempData mà Controller gửi sang
+    var errorMsg = '@TempData["ErrorMessage"]';
+    var successMsg = '@TempData["SuccessMessage"]';
+
+    // Nếu có lỗi (Ví dụ: Xóa category đang có con) -> Hiện Popup Đỏ
+    if (errorMsg) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Cannot Delete!',
+            text: errorMsg,
+            confirmButtonColor: '#000', 
+            confirmButtonText: 'OK'
+        });
+    }
+
+    // Nếu thành công -> Hiện Popup Xanh
+    if (successMsg) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: successMsg,
+            confirmButtonColor: '#28a745', // Màu xanh lá
+            confirmButtonText: 'OK'
+        });
+    }
+
+    // --- 2. XỬ LÝ NÚT XÓA (Hỏi trước khi làm) ---
+    function deleteConfirm(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You want to delete this Category?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', // Màu đỏ cho nút Xóa
+            cancelButtonColor: '#6c757d', // Màu xám cho nút Hủy
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Nếu người dùng bấm Yes -> Chuyển hướng sang hàm Delete của Controller
+                window.location.href = '/Admin/Category/Delete/' + id;
+            }
+        })
+    }
+</script>

@@ -1,0 +1,284 @@
+﻿/* Container */
+/*.detail-container {
+    padding-top: 40px;
+    padding-bottom: 80px;
+}*/
+
+/* Ảnh Gallery */
+/*.detail-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 50px;
+}
+
+.gallery-item img {
+    width: 70%;*/ /* Thu nhỏ lại còn 90% */
+    /*display: block;
+    margin-left: auto;*/ /* Đẩy sang phải hết cỡ trong cột của nó */
+    /*margin-right: 0;
+    mix-blend-mode: multiply;
+}*/
+
+/* Info Sticky */
+/*.detail-info-sticky {
+    position: sticky;
+    top: 100px;
+    padding-left: 30px;*/ /* Thêm padding cho thoáng */
+/*}
+
+.detail-name {
+    font-size: 26px;*/ /* To hơn xíu cho đẹp */
+    /*font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.detail-price {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}*/
+
+/* --- LOGIC GIAO DIỆN SIZE --- */
+/*.size-guide-link {
+    font-size: 12px;
+    text-decoration: underline;
+    color: #666;
+    cursor: pointer;
+}
+
+    .size-guide-link:hover {
+        color: #000;
+    }*/
+
+/* Grid 4 ô đều nhau */
+/*.size-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;*/ /* 4 cột bằng nhau */
+    /*gap: -1px;*/ /* Dính liền nhau hoặc hở xíu tuỳ thích, ở đây để hở nhẹ border */
+    /*border: 1px solid #000;*/ /* Viền bao ngoài nếu thích style hộp */
+    /*border-right: none;
+    border-bottom: none;
+}
+
+.btn-size {
+    width: 100%;
+    height: 50px;
+    background: #fff;
+    border: none;
+    border-right: 1px solid #000;*/ /* Viền ngăn cách */
+    /*border-bottom: 1px solid #000;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #000;
+}
+
+    .btn-size:hover {
+        background: #f0f0f0;
+    }*/
+
+    /* Size đang chọn (Active) */
+    /*.btn-size.active {
+        background: #000;
+        color: #fff;
+    }*/
+
+    /* SIZE HẾT HÀNG (Logic Backend trả về) */
+    /*.btn-size.disabled {
+        background-color: #f2f2f2;*/ /* Nền xám */
+        /*color: #ccc;*/ /* Chữ mờ */
+        /*cursor: not-allowed;*/ /* Cấm bấm */
+        /*text-decoration: line-through;*/ /* Gạch ngang chữ */
+        /*position: relative;
+    }*/
+/* Hoặc thêm dấu X chéo nếu thích */
+/* .btn-size.disabled::after { content: "✕"; position: absolute; ... } */
+
+
+/* --- BUTTONS MUA HÀNG --- */
+/*.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;*/ /* Khoảng cách giữa 2 nút */
+    /*margin-top: 30px;
+}
+
+.btn-action {
+    width: 100%;
+    height: 55px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}*/
+
+/* Nút THÊM VÀO GIỎ (Trắng, Viền đen, Chữ đen) */
+/*.btn-add-cart {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+}
+
+    .btn-add-cart:hover {
+        background: #000;
+        color: #fff;
+    }*/
+
+/* Nút MUA NGAY (Đen, Chữ trắng) */
+/*.btn-buy-now {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+    .btn-buy-now:hover {
+        opacity: 0.8;
+    }*/
+
+/* Mô tả */
+/*.desc-content p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 8px;
+}*/
+
+<link rel="stylesheet" href="~/css/detail.css" asp-append-version="true" / >
+
+/* Container */
+.detail-container {
+    padding-top: 50px;
+    padding-bottom: 100px;
+}
+
+/* ẢNH CHÍNH: Thu nhỏ lại (85%) và nằm giữa cột */
+.product-main-img {
+    max-width: 85%;
+    height: auto;
+    mix-blend-mode: multiply;
+    display: block;
+    /* Đổi từ margin: 0 auto sang cụm dưới đây */
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Info Sticky */
+/* Trong file detail.css */
+.detail-info-sticky {
+    position: sticky;
+    top: 120px;
+    /* Tăng con số này lên để đẩy form sang phải */
+    padding-left: 60px;
+}
+
+.detail-name {
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.detail-price {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 30px;
+}
+
+/* Size Grid */
+.size-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+}
+
+.btn-size {
+    height: 48px;
+    background: #fff;
+    border: none;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    font-weight: 600;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+    .btn-size.active {
+        background: #000;
+        color: #fff;
+    }
+
+    .btn-size.disabled {
+        background: #f9f9f9;
+        color: #ccc;
+        text-decoration: line-through;
+    }
+
+/* Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 35px;
+}
+
+.btn-action {
+    width: 100%;
+    height: 52px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.btn-add-cart {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+}
+
+.btn-buy-now {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+/* Feedback & Divider */
+.thin-divider {
+    border: 0;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    margin: 40px 0 20px 0;
+}
+
+.review-item p {
+    color: #555;
+    margin-top: 10px;
+}
+
+.size-guide-link {
+    font-size: 11px;
+    text-decoration: underline;
+    color: #666;
+}
+.info-wrapper {
+    max-width: 420px;
+    width: 100%;
+    /* Căn wrapper sát lề trái của cột để gần ảnh nhất có thể */
+    margin-left: 0;
+}
+
+/* Đảm bảo Description không bị tràn và chữ dễ đọc */
+.desc-content p {
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+/* Tăng khoảng cách cột một chút cho sang */
+.gx-5 {
+    --bs-gutter-x: 4rem;
+}

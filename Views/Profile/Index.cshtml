@@ -1,0 +1,363 @@
+﻿@model ECommerceClothing.Models.AppUser
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="container py-5">
+    <div class="profile-container">
+        <div class="profile-sidebar">
+            <div class="avatar-box text-center">
+                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                {
+                    <img src="@Model.AvatarUrl" alt="Avatar" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                        <i class="fa-regular fa-user fa-3x text-secondary"></i>
+                    </div>
+                }
+            </div>
+            <div class="text-muted small cursor-pointer mt-2 text-center">Change avatar</div>
+
+            <div class="profile-menu mt-4">
+                <a href="javascript:void(0)" onclick="showTab('personal')" id="btn-personal" class="active-tab">
+                    <i class="fa-regular fa-address-card me-2"></i> Personal information
+                </a>
+                <a href="javascript:void(0)" onclick="showTab('address')" id="btn-address">
+                    <i class="fa-solid fa-location-dot me-2"></i> Address
+                </a>
+                <a asp-controller="Profile" asp-action="MyOrders">
+                    <i class="fa-solid fa-box-open me-2"></i> Order
+                </a>
+                <a href="javascript:void(0)" onclick="showTab('password')" id="btn-password">
+                    <i class="fa-solid fa-shield-halved me-2"></i> Change Password
+                </a>
+            </div>
+        </div>
+
+        <div class="profile-content card border-0 shadow-sm p-4">
+            <div id="section-personal" class="profile-tab-content">
+                <h4 class="fw-bold mb-4">My Profile</h4>
+                <form asp-action="UpdateInfo" method="post" class="form-custom">
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted text-uppercase">Full Name</label>
+                        <input type="text" class="form-control" name="fullName" value="@Model.FullName" placeholder="Enter your name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted text-uppercase">Email Address</label>
+                        <input type="email" class="form-control bg-light" value="@Model.Email" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted text-uppercase">Phone Number</label>
+                        <input type="text" class="form-control" name="phoneNumber" value="@Model.PhoneNumber" placeholder="Enter your phone">
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 py-2 mt-3">Save Changes</button>
+                </form>
+            </div>
+
+            <div id="section-address" class="profile-tab-content d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0">My Addresses</h4>
+                    <button class="btn btn-outline-dark btn-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#profileAddAddressModal">
+                        <i class="fa-solid fa-plus me-1"></i> Add New Address
+                    </button>
+                </div>
+                <div id="profileAddressList" class="d-flex flex-column gap-3">
+                    <div class="text-center py-5"><div class="spinner-border spinner-border-sm"></div></div>
+                </div>
+            </div>
+
+            <div id="section-password" class="profile-tab-content d-none">
+                <h4 class="fw-bold mb-4">Change Password</h4>
+                <form id="changePasswordForm" style="max-width: 450px;">
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted text-uppercase">Current Password</label>
+                        <div class="password-toggle-wrapper">
+                            <input type="password" id="currentPwd" class="form-control" placeholder="••••••••">
+                            <i class="fa-regular fa-eye-slash password-toggle-icon" id="currentPwd_toggle"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted text-uppercase">New Password</label>
+                        <div class="password-toggle-wrapper">
+                            <input type="password" id="newPwd" class="form-control" placeholder="••••••••">
+                            <i class="fa-regular fa-eye-slash password-toggle-icon" id="newPwd_toggle"></i>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="fw-bold small text-muted text-uppercase">Confirm New Password</label>
+                        <div class="password-toggle-wrapper">
+                            <input type="password" id="confirmPwd" class="form-control" placeholder="••••••••">
+                            <i class="fa-regular fa-eye-slash password-toggle-icon" id="confirmPwd_toggle"></i>
+                        </div>
+                    </div>
+                    <button type="button" onclick="updatePassword()" class="btn btn-dark w-100 py-2">Update Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="profileAddAddressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="profileNewAddressForm">
+                    <input type="text" id="p_newFullName" class="form-control mb-3" placeholder="Receiver's Full Name">
+                    <input type="text" id="p_newPhone" class="form-control mb-3" placeholder="Phone Number">
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <select id="p_newProvince" class="form-select shadow-none">
+                                <option value="" selected disabled>Select Province/City</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <select id="p_newDistrict" class="form-select shadow-none" disabled>
+                                <option value="" selected disabled>Select District</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <select id="p_newWard" class="form-select shadow-none" disabled>
+                                <option value="" selected disabled>Select Ward</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <input type="text" id="p_newAddressDetail" class="form-control shadow-none" placeholder="House number, street name...">
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch p-3 border rounded bg-light d-flex align-items-center justify-content-between">
+                        <label class="form-check-label mb-0 fw-bold text-muted" for="p_newIsDefault">Set as default address</label>
+                        <input class="form-check-input m-0" type="checkbox" role="switch" id="p_newIsDefault">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark px-4 fw-bold" onclick="saveAddressFromProfile()">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // --- 1. CẤU HÌNH TOAST (THÔNG BÁO GÓC PHẢI) ---
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#000',
+            color: '#fff',
+            iconColor: '#fff'
+        });
+
+        let provincesData = [];
+
+        // GOM CHUNG TẤT CẢ VÀO 1 SỰ KIỆN DOMContentLoaded DUY NHẤT
+        document.addEventListener("DOMContentLoaded", function() {
+            initProvinceAPI();
+            loadProfileAddresses();
+
+            // Kích hoạt chức năng ẩn/hiện mật khẩu
+            const toggleIcons = document.querySelectorAll('.password-toggle-icon');
+            toggleIcons.forEach(icon => {
+                icon.addEventListener('click', function () {
+                    const passwordInput = this.previousElementSibling;
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    } else {
+                        passwordInput.type = 'password';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+        });
+
+        function showTab(tabName) {
+            document.querySelectorAll('.profile-tab-content').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.profile-menu a').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById('section-' + tabName).classList.remove('d-none');
+            document.getElementById('btn-' + tabName).classList.add('active-tab');
+        }
+
+        function loadProfileAddresses() {
+            const container = document.getElementById('profileAddressList');
+            fetch('/Address/GetMyAddresses')
+                .then(res => res.json())
+                .then(res => {
+                    container.innerHTML = '';
+                    if (res.data && res.data.length > 0) {
+                        res.data.forEach(addr => {
+                            const isDefaultBadge = addr.isDefault ? '<span class="badge bg-dark ms-2">Default</span>' : '';
+                            const html = `
+                                <div class="p-3 border rounded-3 bg-white shadow-sm d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark">${addr.fullName}${isDefaultBadge}</div>
+                                        <div class="text-muted small">${addr.phoneNumber}</div>
+                                        <div class="text-secondary small mt-1">${addr.address}</div>
+                                    </div>
+                                    <div>
+                                        <button onclick="deleteAddress('${addr.id}')" class="btn btn-outline-danger btn-sm border-0">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>`;
+                            container.insertAdjacentHTML('beforeend', html);
+                        });
+                    } else {
+                        container.innerHTML = '<div class="text-center py-4 text-muted">No addresses saved yet.</div>';
+                    }
+                });
+        }
+
+        function initProvinceAPI() {
+            fetch('https://provinces.open-api.vn/api/?depth=3')
+                .then(res => res.json())
+                .then(data => {
+                    provincesData = data;
+                    const provSelect = document.getElementById('p_newProvince');
+                    data.forEach(p => provSelect.options.add(new Option(p.name, p.code)));
+                });
+
+            document.getElementById('p_newProvince').addEventListener('change', function() {
+                const distSelect = document.getElementById('p_newDistrict');
+                const wardSelect = document.getElementById('p_newWard');
+                distSelect.innerHTML = '<option value="" disabled selected>Select District</option>';
+                wardSelect.innerHTML = '<option value="" disabled selected>Select Ward</option>';
+                const prov = provincesData.find(p => p.code == this.value);
+                prov.districts.forEach(d => distSelect.options.add(new Option(d.name, d.code)));
+                distSelect.disabled = false;
+            });
+
+            document.getElementById('p_newDistrict').addEventListener('change', function() {
+                const wardSelect = document.getElementById('p_newWard');
+                wardSelect.innerHTML = '<option value="" disabled selected>Select Ward</option>';
+                const prov = provincesData.find(p => p.code == document.getElementById('p_newProvince').value);
+                const dist = prov.districts.find(d => d.code == this.value);
+                dist.wards.forEach(w => wardSelect.options.add(new Option(w.name, w.code)));
+                wardSelect.disabled = false;
+            });
+        }
+
+        // --- 2. THAY THẾ ALERT BẰNG TOAST KHI LƯU ĐỊA CHỈ ---
+        function saveAddressFromProfile() {
+            const detail = document.getElementById('p_newAddressDetail').value;
+            const ward = document.getElementById('p_newWard').options[document.getElementById('p_newWard').selectedIndex].text;
+            const dist = document.getElementById('p_newDistrict').options[document.getElementById('p_newDistrict').selectedIndex].text;
+            const prov = document.getElementById('p_newProvince').options[document.getElementById('p_newProvince').selectedIndex].text;
+
+            const payload = {
+                FullName: document.getElementById('p_newFullName').value,
+                PhoneNumber: document.getElementById('p_newPhone').value,
+                Address: `${detail}, ${ward}, ${dist}, ${prov}`,
+                IsDefault: document.getElementById('p_newIsDefault').checked
+            };
+
+            fetch('/Address/AddAddress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(res => {
+                if(res.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('profileAddAddressModal')).hide();
+                    loadProfileAddresses();
+                    Toast.fire({ icon: 'success', title: 'New address added successfully!' });
+                } else {
+                    Toast.fire({ icon: 'error', title: 'Failed to add address!' });
+                }
+            });
+        }
+
+        function deleteAddress(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you really want to delete this address?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#000',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/Address/DeleteAddress?id=${id}`, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success) {
+                            loadProfileAddresses();
+                            Toast.fire({ icon: 'success', title: 'Address deleted successfully!' });
+                        } else {
+                            Swal.fire({ title: 'Error!', text: res.msg, icon: 'error', confirmButtonColor: '#000' });
+                        }
+                    })
+                    .catch(err => {
+                        Toast.fire({ icon: 'error', title: 'Something went wrong!' });
+                    });
+                }
+            });
+        }
+
+        // --- 3. ĐỔI PASSWORD BẰNG AJAX ---
+        function updatePassword() {
+            const current = document.getElementById('currentPwd').value;
+            const newPass = document.getElementById('newPwd').value;
+            const confirm = document.getElementById('confirmPwd').value;
+
+            if (!current || !newPass || !confirm) {
+                Toast.fire({ icon: 'warning', title: 'Please fill in all the information!' });
+                return;
+            }
+            if (newPass !== confirm) {
+                // ĐÃ FIX LỖI DẤU NHÁY ĐƠN Ở ĐÂY 👇
+                Toast.fire({ icon: 'warning', title: "The verification password doesn't match!" });
+                return;
+            }
+
+            fetch('/Profile/ChangePasswordJson', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    currentPassword: current,
+                    newPassword: newPass,
+                    confirmNewPassword: confirm
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    Toast.fire({ icon: 'success', title: res.msg });
+                    document.getElementById('changePasswordForm').reset();
+                    // Optional: Reset lại các icon về mắt nhắm
+                    document.querySelectorAll('.password-toggle-icon').forEach(icon => {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                        icon.previousElementSibling.type = 'password';
+                    });
+                } else {
+                    Toast.fire({ icon: 'error', title: res.msg });
+                }
+            })
+            .catch(err => {
+                Toast.fire({ icon: 'error', title: 'Server connection error!' });
+            });
+        }
+    </script>
+}

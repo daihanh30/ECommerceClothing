@@ -1,0 +1,261 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using ECommerceClothing.Models
+@inject UserManager<AppUser> UserManager
+@inject ECommerceClothing.Data.AppDbContext _context
+@{
+    // Lấy categoryId từ URL để kiểm tra
+    var currentCat = Context.Request.Query["categoryId"].ToString();
+
+    // --- DI CHUYỂN LOGIC VOUCHER LÊN ĐÂY CHO DỄ QUẢN LÝ ---
+    var activeVouchers = _context.Vouchers
+        .Where(v => v.IsActive == true
+                 && v.IsPublic == false
+                 && v.EndDate >= DateTime.Now
+                 && v.UsedCount < v.Quantity)
+        .ToList();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NIXONÉ</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/productdetail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/minicart.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    @RenderSection("Styles", required: false)
+
+    <style>
+        /* CSS cho phần thân trang để không bị thanh voucher che khuất nội dung nếu dùng fixed-bottom */
+        body {
+            padding-bottom: 30px; /* Thêm padding bằng chiều cao của thanh voucher */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand logo-text" asp-controller="Home" asp-action="Index">
+                NIXONÉ<span class="logo-dot">®</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link @(string.IsNullOrEmpty(currentCat) ? "active fw-bold text-dark" : "")"
+                           asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-categoryId="">
+                            Shop all
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentCat == "1" ? "active fw-bold text-dark" : "")"
+                           asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-categoryId="1">
+                            Tops
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentCat == "2" ? "active fw-bold text-dark" : "")"
+                           asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-categoryId="2">
+                            Bottoms
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentCat == "3" ? "active fw-bold text-dark" : "")"
+                           asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-categoryId="3">
+                            Accessories
+                        </a>
+                    </li>
+                </ul>
+
+                <form asp-controller="Product" asp-action="Search" method="get" class="nav-search me-4">
+                    <input type="text" name="query" placeholder="Search here..." value="@Context.Request.Query["query"]" />
+                    <button type="submit"><i class="fa fa-search"></i></button>
+                </form>
+
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    <li class="nav-item me-3 mt-1">
+                        <a class="nav-link position-relative" asp-controller="Cart" asp-action="Index">
+                            <i class="fa-solid fa-cart-shopping fs-5"></i>
+                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="font-size: 0.65rem; padding: 0.35em 0.5em; border: 2px solid white;">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        var user = await UserManager.GetUserAsync(User);
+                        var displayName = user?.FullName ?? User.Identity.Name;
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                Hi, @displayName
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if (User.IsInRole("Admin") || User.Identity.Name == "admin@gmail.com")
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Profile" asp-action="Index">Profile</a>
+                                    </li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" asp-controller="Account" asp-action="Login">LOGIN</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <div class="d-flex justify-content-center mt-5 mb-5">
+        <ul class="pagination">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)" style="color: black;">&laquo; Previous</a>
+                </li>
+            }
+
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="?page=@i"
+                       style="@(i == ViewBag.CurrentPage ? "background-color: black; border-color: black; color: white;" : "color: black;")">
+                        @i
+                    </a>
+                </li>
+            }
+
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)" style="color: black;">Next &raquo;</a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <footer class="bg-light text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 NICHOLSON. All rights reserved.</p>
+        </div>
+    </footer>
+
+    @* --- THANH VOUCHER HIỂN THỊ DƯỚI CÙNG TRANG MÀN HÌNH --- *@
+    @if (activeVouchers.Any())
+    {
+        <div class="voucher-ticker-container">
+            <div class="ticker-wrapper">
+
+                @for (int block = 0; block < 2; block++)
+                {
+                    <div class="ticker-item">
+                        @for (int i = 0; i < 15; i++)
+                        {
+                            @foreach (var v in activeVouchers)
+                            {
+                                <span>
+                                    🔥 USE CODE: <span class="code">@v.Code</span> - @v.Title (UNTIL @v.EndDate.ToString("dd/MM"))
+                                    &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+                                </span>
+                            }
+                        }
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+
+    @* --- CÁC THÀNH PHẦN KHÁC (MINI CART, QUICK VIEW, SIZE GUIDE) GIỮ NGUYÊN --- *@
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="cartSidebar" aria-labelledby="cartSidebarLabel">
+        <div class="cart-header border-bottom p-3 d-flex justify-content-between align-items-center">
+            <h5 class="cart-title mb-0 fw-bold text-uppercase" style="letter-spacing: 2px;">Cart</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="cart-body p-3" id="cartSidebarBody" style="overflow-y: auto; height: calc(100vh - 150px);">
+        </div>
+        <div class="cart-footer border-top p-3 bg-white" style="position: absolute; bottom: 0; width: 100%;">
+            <div class="cart-total d-flex justify-content-between fw-bold mb-3">
+                <span class="text-uppercase" style="letter-spacing: 1px;">TOTAL</span>
+                <span id="cartSidebarTotal">0 VND</span>
+            </div>
+            <div class="cart-buttons d-flex gap-2">
+                <a href="/Cart" class="btn btn-outline-dark w-50 rounded-0 fw-bold">VIEW CART</a>
+                <a href="/Checkout?checkoutAll=true" class="btn btn-dark w-50 rounded-0 fw-bold">CHECKOUT</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-0 border-0 shadow-lg">
+                <div id="quickViewContent" class="modal-body p-0">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-5 pt-2 text-center" id="sizeGuideContent">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    @* --- JS SCRIPTS --- *@
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

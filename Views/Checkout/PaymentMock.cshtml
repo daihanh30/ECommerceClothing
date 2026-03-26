@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Thanh toán MoMo";
+    // Tạo link QR giả: Nội dung là mã đơn hàng
+    string qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ThanhToanDonHang_{ViewBag.OrderId}";
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg text-center" style="width: 400px; border-radius: 20px; overflow: hidden;">
+        <div class="bg-primary p-3" style="background-color: #A50064 !important;">
+            <h5 class="text-white m-0 fw-bold">QUÉT MÃ ĐỂ THANH TOÁN</h5>
+        </div>
+
+        <div class="card-body p-4">
+            <p class="text-muted mb-3">Sử dụng App <strong>MoMo</strong> để quét mã</p>
+
+            <div class="border p-2 d-inline-block rounded mb-3">
+                <img src="@qrCodeUrl" alt="QR Code" class="img-fluid" width="200" />
+            </div>
+
+            <h4 class="fw-bold text-danger">@String.Format("{0:N0}", ViewBag.Amount) VNĐ</h4>
+            <p class="small text-muted">Đang chờ xác nhận thanh toán...</p>
+
+            <hr />
+
+            <a href="/Checkout/ConfirmPayment?orderId=@ViewBag.OrderId" class="btn btn-success w-100 py-2 fw-bold rounded-pill">
+                <i class="fa-solid fa-check me-2"></i> XÁC NHẬN ĐÃ THANH TOÁN
+            </a>
+
+            <a href="/" class="btn btn-link text-muted mt-2 text-decoration-none">Quay lại mua sắm</a>
+        </div>
+    </div>
+</div>

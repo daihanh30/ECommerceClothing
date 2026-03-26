@@ -1,0 +1,91 @@
+﻿@model ECommerceClothing.Models.OrderDetailVM
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">ORDER #@Model.OrderInfo.Id <span class="badge bg-dark ms-2">@Model.OrderInfo.Status</span></h5>
+                    <small class="text-muted">Placed on @Model.OrderInfo.OrderDate.ToString("dd MMM yyyy, HH:mm")</small>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@item.ProductImage" class="rounded border me-3" style="width: 70px; height: 90px; object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold text-uppercase">@item.ProductName</div>
+                                                    <div class="small text-muted">Size: @item.Size</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@((item.Price * 1000).ToString("N0")) VND</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end fw-bold">@((item.Price * item.Quantity * 1000).ToString("N0")) VND</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-0 mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0">SHIPPING INFO</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1 fw-bold">@Model.OrderInfo.FullName</p>
+                    <p class="mb-1 text-muted small"><i class="fa fa-phone me-2"></i>@Model.OrderInfo.PhoneNumber</p>
+                    <p class="mb-1 text-muted small"><i class="fa fa-map-marker me-2"></i>@Model.OrderInfo.Address</p>
+                    <hr>
+                    <p class="mb-0 small text-muted"><strong>Payment:</strong> @Model.OrderInfo.PaymentMethod</p>
+                    <p class="mb-0 small text-muted"><strong>Note:</strong> @(string.IsNullOrEmpty(Model.OrderInfo.Note) ? "No note" : Model.OrderInfo.Note)</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>@((Model.Subtotal * 1000).ToString("N0")) VND</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping Fee</span>
+                        <span>@Model.OrderInfo.ShippingFee.ToString("N0") VND</span>
+                    </div>
+                    @if (Model.OrderInfo.DiscountAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-danger">
+                            <span>Discount (@Model.OrderInfo.VoucherCode)</span>
+                            <span>- @Model.OrderInfo.DiscountAmount.ToString("N0") VND</span>
+                        </div>
+                    }
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>TOTAL</span>
+                        <span class="text-danger">@Model.OrderInfo.TotalAmount.ToString("N0") VND</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

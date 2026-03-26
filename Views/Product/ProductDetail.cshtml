@@ -1,0 +1,326 @@
+﻿@model ECommerceClothing.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    // 1. Chuẩn hóa danh sách Size
+    var allSizes = new List<string> { "S", "M", "L", "XL" };
+    var availableSizes = Model.Size?.Split(',').Select(s => s.Trim()).ToList() ?? new List<string>();
+
+    // 2. Lấy dữ liệu Review từ ViewBag
+    var reviews = ViewBag.Reviews as List<ECommerceClothing.Models.Reviews>;
+    var totalReviews = (int)(ViewBag.TotalReviews ?? 0);
+}
+
+<link rel="stylesheet" href="~/css/detail.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+
+<div class="container detail-container mt-5">
+
+    <div class="row gx-0 justify-content-center">
+
+        <div class="col-md-6 d-flex justify-content-end">
+            <div class="detail-gallery w-100">
+                @if (Model.Images != null && Model.Images.Count > 0)
+                {
+                    foreach (var img in Model.Images)
+                    {
+                        <div class="gallery-item mb-4">
+                            <img src="@img.ImageUrl" alt="@Model.Name" class="product-main-img shadow-sm" />
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6 ps-lg-5">
+            <div class="detail-info-sticky">
+                <div class="info-wrapper">
+                    <h1 class="detail-name">@Model.Name</h1>
+                    <p class="detail-price">@((Model.Price * 1000).ToString("#,##0")) VND</p>
+
+                    @* 👉 ĐÃ SỬA PHẦN SIZE: Xử lý hiển thị "ONE SIZE" đẹp, căn giữa, xóa viền (CategoryId = 3) *@
+                    @if (Model.CategoryId == 3)
+                    {
+                        <div class="detail-option mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold text-uppercase small" style="letter-spacing: 1px;">Size</label>
+                            </div>
+
+                            <div class="d-flex mt-2">
+                                <div class="bg-dark text-white d-flex justify-content-center align-items-center"
+                                     style="cursor: default; width: auto; padding: 0 30px; min-width: 120px; height: 40px; font-weight: bold; letter-spacing: 1px;">
+                                    ONE SIZE
+                                </div>
+                            </div>
+
+                            @{
+                                var firstAvailable = availableSizes.FirstOrDefault();
+                                var hiddenSizeVal = !string.IsNullOrEmpty(firstAvailable) ? firstAvailable : "One Size";
+                            }
+                            <input type="hidden" id="selectedSize" name="Size" value="@hiddenSizeVal" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="detail-option mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold text-uppercase small" style="letter-spacing: 1px;">Size</label>
+                                <a href="#" class="size-guide-link" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">SIZE GUIDE</a>
+                            </div>
+
+                            <div class="size-grid">
+                                @foreach (var s in allSizes)
+                                {
+                                    bool isAvailable = availableSizes.Contains(s);
+                                    if (isAvailable)
+                                    {
+                                        <button type="button" class="btn-size" onclick="selectSize(this, '@s')">@s</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn-size disabled" disabled>@s</button>
+                                    }
+                                }
+                            </div>
+
+                            <input type="hidden" id="selectedSize" name="Size" />
+
+                            <div id="sizeError" class="text-danger mt-2 small fw-bold" style="display:none; font-size: 11px;">PLEASE SELECT A SIZE</div>
+                        </div>
+                    }
+
+                    @{
+                        // Kiểm tra xem có phải Admin đang đăng nhập không
+                        bool isAdmin = User.Identity.IsAuthenticated && User.IsInRole("Admin");
+                    }
+
+                    <div class="action-buttons mt-5">
+                        <button class="btn-action btn-add-cart mb-3 @(isAdmin ? "admin-locked" : "")"
+                                onclick="@(isAdmin ? "return false;" : "handleBuyProcess(false)")"
+                                @(isAdmin ? "disabled" : "")>
+                            ADD TO CART
+                        </button>
+
+                        <button class="btn-action btn-buy-now @(isAdmin ? "admin-locked" : "")"
+                                onclick="@(isAdmin ? "return false;" : "handleBuyProcess(true)")"
+                                @(isAdmin ? "disabled" : "")>
+                            BUY IT NOW
+                        </button>
+                    </div>
+
+                    @* Mô tả *@
+                    <div class="detail-desc mt-5 pt-4 border-top">
+                        <h5 class="fw-bold small text-uppercase mb-3" style="letter-spacing: 1px;">Description</h5>
+                        <div class="desc-content small text-muted" style="line-height: 1.8;">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                @foreach (var line in Model.Description.Split('\n'))
+                                {
+                                    <p class="mb-2">@line</p>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <hr class="thin-divider my-5">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="feedback-section py-4" id="reviews">
+                <h4 class="fw-bold text-uppercase mb-5 text-center" style="letter-spacing: 3px;">Customer Reviews (@totalReviews)</h4>
+
+                @if (reviews != null && reviews.Any())
+                {
+                    <div class="review-list">
+                        @foreach (var r in reviews)
+                        {
+                            <div class="review-item mb-5 pb-4 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; font-size: 12px; font-weight: bold;">
+                                            US
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 small text-uppercase">Verified Buyer</h6>
+                                            <div class="text-warning mt-1" style="font-size: 10px;">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="fa-@(i <= r.Rating ? "solid" : "regular") fa-star"></i>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="text-muted small" style="font-size: 11px;">@r.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+
+                                <div class="review-body mt-3">
+                                    <p class="text-dark mb-3" style="font-size: 14px;">@r.Comment</p>
+
+                                    @if (!string.IsNullOrEmpty(r.ImageUrl))
+                                    {
+                                        <div class="review-img-container">
+                                            <img src="@r.ImageUrl" class="rounded border" style="width: 100px; height: 130px; object-fit: cover; cursor: pointer;" onclick="window.open(this.src)">
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (totalReviews > 3)
+                    {
+                        <div class="text-center mt-5">
+                            <a asp-controller="Product" asp-action="AllReviews" asp-route-productId="@Model.Id"
+                               class="btn btn-outline-dark rounded-0 px-5 py-2 text-uppercase fw-bold"
+                               style="font-size: 11px; letter-spacing: 2px;">
+                                VIEW ALL REVIEWS (@totalReviews)
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <p class="text-muted small text-uppercase" style="letter-spacing: 1px;">No reviews yet for this product.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-0 border-0">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body text-center p-4">
+                @if (Model.CategoryId == 1)
+                {
+                    <h5 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 2px;">Tops Size Guide</h5>
+                    <img src="/images/size-tops.jpg" alt="Tops Size Guide" class="img-fluid" />
+                }
+                else if (Model.CategoryId == 2)
+                {
+                    <h5 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 2px;">Bottoms Size Guide</h5>
+                    <img src="/images/size-bottoms.jpg" alt="Bottoms Size Guide" class="img-fluid" />
+                }
+                else
+                {
+                    <p class="text-muted">Size guide not available for this category.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            refreshCartSidebar();
+        });
+
+        function selectSize(btn, size) {
+            $('.btn-size').removeClass('active');
+            $(btn).addClass('active');
+            $('#selectedSize').val(size);
+            $('#sizeError').hide();
+        }
+
+                        function handleBuyProcess(isBuyNow) {
+            var productId = "@Model.Id";
+            var size = $('#selectedSize').val();
+            var categoryId = "@Model.CategoryId";
+
+            // Kiểm tra chọn size
+            if (categoryId != "3" && !size) {
+                $('#sizeError').fadeIn();
+                return;
+            }
+
+            if (isBuyNow) {
+                // Nút BUY NOW: Cứ nhảy thẳng qua Checkout.
+                // Vì CheckoutController đã có [Authorize], ASP.NET sẽ TỰ ĐỘNG đá khách qua trang Đăng nhập, đăng nhập xong nó tự động chở khách quay lại trang Checkout luôn! Rất xịn!
+                window.location.href = `/Checkout?buyNowId=${productId}&size=${size}&qty=1`;
+            } else {
+                // Nút ADD TO CART
+                $.ajax({
+                    url: '/Cart/AddToCartAjax',
+                    type: 'POST',
+                    data: { Id: productId, Size: size, Quantity: 1 },
+                    success: function (res) {
+                        // 👉 ĐÃ FIX: Bắt tín hiệu chưa đăng nhập ở đây
+                        if (res.notLoggedIn) {
+                            var currentUrl = window.location.pathname + window.location.search;
+                            window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(currentUrl);
+                            return;
+                        }
+
+                        if (res.success) {
+                            refreshCartSidebar();
+                            var myOffcanvas = document.getElementById('cartSidebar');
+                            var bsOffcanvas = new bootstrap.Offcanvas(myOffcanvas);
+                            bsOffcanvas.show();
+                        } else {
+                            // 👉 ĐÃ FIX: Lỡ C# không gửi msg thì báo lỗi chung chung, không bị undefined nữa
+                            alert(res.msg || "Có lỗi xảy ra, vui lòng thử lại!");
+                        }
+                    },
+                    error: function () {
+                        alert("Lỗi kết nối tới máy chủ.");
+                    }
+                });
+            }
+        }
+
+        function refreshCartSidebar() {
+             $.getJSON('/Cart/GetCartJson', function (data) {
+                var html = '';
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach(function (item) {
+                        var formattedItemPrice = (Number(item.price) * 1000).toLocaleString('en-US');
+                        html += `
+                            <div class="cart-item-row d-flex mb-5 pb-3 border-bottom" style="min-height: 115px;">
+                                <img src="${item.productImage}" style="width: 90px; height: 115px; object-fit: cover;" class="border">
+                                <div class="ms-3 flex-grow-1 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="fw-bold mb-1 small text-uppercase" style="max-width: 85%; font-size: 13px; letter-spacing: 0.5px;">${item.productName}</h6>
+                                        <button class="btn btn-sm p-0 text-muted" onclick="removeCartItem(${item.productId}, '${item.size}')">
+                                            <i class="bi bi-x" style="font-size: 20px;"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-muted mb-0" style="font-size: 11px;">SIZE: ${item.size}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pb-1">
+                                        <span class="fw-bold small" style="font-size: 14px;">${formattedItemPrice} VND</span>
+                                        <div class="d-flex align-items-center border">
+                                            <button class="btn btn-sm px-2 py-0 border-end rounded-0" style="font-size: 16px; background: #fff;" onclick="updateQtySidebar(${item.productId}, '${item.size}', -1)">-</button>
+                                            <span class="px-2 small" style="min-width: 30px; text-align: center; font-size: 12px; font-weight: 600;">${item.quantity}</span>
+                                            <button class="btn btn-sm px-2 py-0 border-start rounded-0" style="font-size: 16px; background: #fff;" onclick="updateQtySidebar(${item.productId}, '${item.size}', 1)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                } else {
+                    html = '<div class="text-center py-5"><p class="text-muted small uppercase" style="letter-spacing:1px;">YOUR CART IS EMPTY</p></div>';
+                }
+                $('#cartSidebarBody').html(html);
+                var totalFormatted = (Number(data.total) * 1000).toLocaleString('en-US');
+                $('#cartSidebarTotal').text(totalFormatted + " VND");
+            });
+        }
+
+        function removeCartItem(id, size) {
+            $.post('/Cart/Remove', { id: id, size: size }, function() { refreshCartSidebar(); });
+        }
+
+        function updateQtySidebar(id, size, change) {
+            $.post('/Cart/UpdateQuantity', { id: id, size: size, change: change }, function() { refreshCartSidebar(); });
+        }
+    </script>
+}

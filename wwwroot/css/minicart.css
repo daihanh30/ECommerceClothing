@@ -1,0 +1,247 @@
+﻿/* FILE: wwwroot/css/minicart.css */
+
+/* 1. Backdrop (Lớp nền mờ đen sau lưng) */
+/*.offcanvas-backdrop.show {
+    opacity: 0.6 !important;*/ /* Độ mờ */
+    /*background-color: #000 !important;*/ /* Màu đen */
+/*}*/
+
+/* 2. Khung Sidebar */
+/*.offcanvas-end {
+    width: 450px !important;*/ /* Rộng giống Hades */
+    /*border-left: none;
+}*/
+
+/* 3. Header */
+/*.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+}
+
+.cart-title {
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.btn-close-cart {
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    color: #000;
+    transition: transform 0.2s;
+}
+
+    .btn-close-cart:hover {
+        transform: scale(1.1);
+    }*/
+
+/* 4. Body (Danh sách sản phẩm) */
+/*.cart-body {
+    padding: 0 30px;
+    overflow-y: auto;
+    flex-grow: 1;*/
+    /* Ẩn thanh cuộn cho đẹp (Chrome/Safari) */
+    /*scrollbar-width: thin;
+}
+
+    .cart-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .cart-body::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 3px;
+    }*/
+
+/* 5. Từng món hàng (Item) */
+/*.cart-item {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #f1f1f1;
+    position: relative;
+}*/
+
+/* Ảnh dọc tỉ lệ 3:4 */
+/*.cart-item-img {
+    width: 80px;
+    height: 106px;
+    object-fit: cover;
+    display: block;
+    background-color: #f9f9f9;
+}*/
+
+/* Thông tin bên phải */
+/*.cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cart-item-name {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #000;
+    text-decoration: none;
+    line-height: 1.4;
+    padding-right: 20px;*/ /* Chừa chỗ cho nút X */
+    /*display: -webkit-box;
+    -webkit-line-clamp: 2;*/ /* Cắt bớt nếu tên quá dài 2 dòng */
+    /*-webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cart-item-variant {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 5px;
+}*/
+
+/* Hàng dưới: Số lượng & Giá */
+/*.cart-item-bottom {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: auto;
+}*/
+
+/* Ô hiển thị số lượng (Xám nhạt) */
+/*.qty-display-box {
+    background: #f3f3f3;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+    min-width: 32px;
+    text-align: center;
+}
+
+.cart-item-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000;
+}*/
+
+/* Nút Xóa (X nhỏ) */
+/*.btn-remove-item {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #000;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+    .btn-remove-item:hover {
+        opacity: 1;
+        color: #ff0000;
+    }*/
+
+/* 6. Footer */
+/*.cart-footer {
+    padding: 25px 30px;
+    border-top: 1px solid #f1f1f1;
+    background: #fff;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.cart-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.btn-cart-black {
+    background: #000;
+    color: #fff;
+    text-align: center;
+    padding: 14px 0;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    border: none;
+    display: block;
+}
+
+    .btn-cart-black:hover {
+        opacity: 0.8;
+        color: #fff;
+    }*/
+/* Style cho khung tăng giảm số lượng trong Mini Cart */
+.cart-item-bottom {
+    display: flex;
+    justify-content: space-between; /* Giá bên trái - Nút số lượng bên phải */
+    align-items: center;
+    margin-top: 10px;
+}
+
+.cart-item-price {
+    font-weight: bold;
+    color: #000;
+    font-size: 14px;
+}
+
+/* Khung chứa nút +/- nhỏ xíu */
+.qty-control-sm {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px; /* Bo góc nhẹ cho mềm mại */
+    overflow: hidden;
+}
+
+    .qty-control-sm button {
+        border: none;
+        background: #f8f9fa;
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+
+        .qty-control-sm button:hover {
+            background: #e9ecef;
+        }
+
+    .qty-control-sm span {
+        width: 28px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        line-height: 24px;
+    }

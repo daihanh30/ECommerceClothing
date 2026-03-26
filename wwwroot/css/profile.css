@@ -1,0 +1,91 @@
+﻿/* wwwroot/css/profile.css */
+
+/* Khung bao ngoài cùng: Giới hạn chiều rộng, canh giữa, đổ bóng */
+.profile-container {
+    max-width: 900px; /* Giới hạn độ rộng như design */
+    margin: 50px auto; /* Canh giữa màn hình */
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.08); /* Đổ bóng nhẹ cho đẹp */
+    display: flex; /* Chia cột trái phải */
+    overflow: hidden;
+    min-height: 500px;
+}
+
+/* Cột trái: Sidebar */
+.profile-sidebar {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid #f0f0f0;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Cột phải: Nội dung */
+.profile-content {
+    flex: 1; /* Chiếm hết phần còn lại */
+    padding: 50px;
+}
+
+/* Avatar tròn */
+.avatar-box {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    border: 2px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+    .avatar-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* Menu bên trái */
+.profile-menu {
+    width: 100%;
+    margin-top: 30px;
+}
+
+    .profile-menu a {
+        display: block;
+        padding: 12px 0;
+        color: #555;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid #f0f0f0;
+        transition: 0.2s;
+    }
+
+        .profile-menu a:hover, .profile-menu a.active {
+            color: #000;
+            font-weight: bold;
+        }
+
+/* Form Input */
+.form-custom label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.form-custom input {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 14px;
+}
+
+    .form-custom input:focus {
+        border-color: #000;
+        box-shadow: none;
+    }

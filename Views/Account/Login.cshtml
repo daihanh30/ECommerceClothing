@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = "_Layout";
+}
+
+<div class="auth-page">
+    <div class="auth-box">
+
+        <div class="auth-left">
+            <h2>Welcome Back!!</h2>
+
+            @* 👉 ĐÃ FIX: Chèn dòng báo lỗi chữ đỏ vào ngay đây, nằm giữa Welcome và Form *@
+            @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+            {
+                <p class="text-center fw-bold" style="color: #dc3545; font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> @ViewBag.Error
+                </p>
+            }
+
+            <form asp-controller="Account" asp-action="Login" method="post">
+
+                <div class="auth-group">
+                    <label>Email</label>
+                    <input type="email"
+                           name="email"
+                           required
+                           placeholder="email@gmail.com">
+                </div>
+
+                <div class="auth-group password-group">
+                    <label>Password</label>
+                    <input type="password"
+                           id="loginPassword"
+                           name="password"
+                           required
+                           placeholder="Enter your password">
+
+                    <span class="toggle-password"
+                          onclick="togglePassword('loginPassword', this)">
+                        <i class="fa-regular fa-eye-slash"></i>
+                    </span>
+                </div>
+
+                <div class="auth-forgot">
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+
+            @{
+                var success = Context.Request.Query["success"].ToString();
+            }
+
+            @if (success == "true")
+            {
+                <div class="success-overlay" id="successOverlay">
+                    <div class="success-box">
+                        <div class="success-icon">✓</div>
+
+                        <p class="success-text">
+                            Đăng ký tài khoản thành công
+                        </p>
+
+                        <button class="success-btn" onclick="closeSuccess()">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @section Scripts {
+                <script>
+                    function closeSuccess() {
+                        // Ẩn popup
+                        document.getElementById("successOverlay").style.display = "none";
+
+                        // Xóa ?success=true khỏi URL
+                        window.history.replaceState(null, "", "/Account/Login");
+                    }
+                </script>
+            }
+
+            <p class="auth-signup" style="margin-top: 20px;">
+                Don’t have an account?
+                <a asp-controller="Account" asp-action="Register">Sign up</a>
+            </p>
+        </div>
+
+        <div class="auth-right d-none"></div>
+
+    </div>
+</div>

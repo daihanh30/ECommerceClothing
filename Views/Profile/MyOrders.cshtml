@@ -1,0 +1,562 @@
+﻿@model IEnumerable<ECommerceClothing.Models.Order>
+@{
+    ViewData["Title"] = "Order History";
+    var currentStatus = ViewBag.CurrentStatus as string;
+    // Lấy danh sách ID đơn đã đánh giá ra ngay từ đầu trang cho code nó sạch
+    var reviewedOrders = ViewBag.ReviewedOrders as List<int> ?? new List<int>();
+}
+
+<div class="container my-5" style="max-width: 950px; margin: 0 auto;">
+
+    <div class="d-flex justify-content-between align-items-end border-bottom pb-3 mb-4">
+        <div class="mb-4">
+            <a asp-action="Index" asp-controller="Profile" class="text-decoration-none text-muted d-inline-flex align-items-center back-link">
+                <i class="fa-solid fa-chevron-left me-2" style="font-size: 12px;"></i>
+                <span class="small fw-bold text-uppercase" style="letter-spacing: 1px;">Back to Profile</span>
+            </a>
+        </div>
+        <h4 class="fw-bold text-uppercase mb-0" style="letter-spacing: 2px;">Order History</h4>
+
+        @* Thông báo thành công *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-0 mt-3 mb-0" role="alert" id="successAlert">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                <strong>Success!</strong> @TempData["SuccessMessage"]
+                @* Nút Close của Bootstrap 5 mặc định sẽ nằm bên phải nếu có class alert-dismissible *@
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <script>
+                setTimeout(function() {
+                    let alertObj = document.getElementById('successAlert');
+                    if(alertObj) {
+                        let bsAlert = new bootstrap.Alert(alertObj);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            </script>
+        }
+    </div>
+
+    <div class="d-flex mb-4 overflow-auto" style="gap: 2.5rem; scrollbar-width: none;">
+        <a asp-action="MyOrders" asp-route-status=""
+           class="text-decoration-none small text-uppercase pb-2 @(string.IsNullOrEmpty(currentStatus) ? "border-bottom border-2 border-dark fw-bold text-dark" : "text-muted")" style="letter-spacing: 1px;">
+            All
+        </a>
+        @foreach (var s in new[] { "Pending", "Shipping", "Delivered", "Cancelled" })
+        {
+            <a asp-action="MyOrders" asp-route-status="@s"
+               class="text-decoration-none small text-uppercase pb-2 @(currentStatus == s ? "border-bottom border-2 border-dark fw-bold text-dark" : "text-muted")" style="letter-spacing: 1px;">
+                @s
+            </a>
+        }
+    </div>
+
+    <div id="statusMessageContainer" class="mb-3"></div>
+    <div class="order-list">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 bg-light rounded-0">
+                <p class="text-muted mb-3 small text-uppercase" style="letter-spacing: 1px;">No orders found in this category.</p>
+                <a href="/" class="btn btn-outline-dark btn-sm rounded-0 px-4 text-uppercase" style="letter-spacing: 1px;">Continue Shopping</a>
+            </div>
+        }
+        else
+        {
+            @foreach (var order in Model)
+            {
+                <div class="card border border-light shadow-sm rounded-0 mb-4 transition-hover">
+                    <div class="card-header bg-white border-bottom pt-3 pb-3 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-dark text-uppercase">NIXONÉ V.N</span>
+                            <span class="text-muted ms-2 small">| &nbsp; Order #@order.Id.ToString("D5")</span>
+                        </div>
+                        <span class="badge rounded-0 fw-normal text-uppercase"
+                              style="font-size: 0.7rem; padding: 0.5rem 1rem; letter-spacing: 1px; @GetStatusStyle(order.Status)">
+                            @order.Status
+                        </span>
+                    </div>
+
+                    <div class="card-body px-4 py-3">
+                        @if (order.OrderDetails != null && order.OrderDetails.Any())
+                        {
+                            var firstItem = order.OrderDetails.First();
+                            var remainingItems = order.OrderDetails.Skip(1).ToList();
+
+                            <div class="d-flex align-items-center">
+                                <img src="@(firstItem.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
+                                     class="border" style="width: 80px; height: 100px; object-fit: cover;" alt="Product">
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="fw-bold text-uppercase mb-1" style="font-size: 0.9rem;">@firstItem.Product.Name</h6>
+                                    <p class="text-muted small mb-1">Variant: @firstItem.Size</p>
+                                    <p class="mb-0 fw-semibold">x @firstItem.Quantity</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-dark fw-bold">@((firstItem.Price * 1000).ToString("N0")) VND</span>
+                                </div>
+                            </div>
+
+                            @if (remainingItems.Any())
+                            {
+                                <div class="collapse" id="collapseOrder_@order.Id">
+                                    @foreach (var item in remainingItems)
+                                    {
+                                        <hr class="text-muted opacity-25 my-3">
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(item.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
+                                                 class="border" style="width: 80px; height: 100px; object-fit: cover;" alt="Product">
+                                            <div class="ms-3 flex-grow-1">
+                                                <h6 class="fw-bold text-uppercase mb-1" style="font-size: 0.9rem;">@item.Product.Name</h6>
+                                                <p class="text-muted small mb-1">Variant: @item.Size</p>
+                                                <p class="mb-0 fw-semibold">x @item.Quantity</p>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="text-dark fw-bold">@((item.Price * 1000).ToString("N0")) VND</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="text-center mt-3 border-top pt-2">
+                                    <a data-bs-toggle="collapse" href="#collapseOrder_@order.Id" role="button" aria-expanded="false"
+                                       class="text-decoration-none text-muted small text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem;"
+                                       onclick="toggleCollapseText(this, @remainingItems.Count)">
+                                        <span class="toggle-text">View @remainingItems.Count more items</span>
+                                        <i class="bi bi-chevron-down toggle-icon ms-1"></i>
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="card-footer bg-light border-top px-4 py-3 d-flex justify-content-between align-items-center">
+                        <div class="text-end w-100 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="small text-muted text-uppercase me-2" style="font-size: 0.75rem;">Total Amount:</span>
+                                <span class="fs-5 fw-bold text-danger">@order.TotalAmount.ToString("N0") VND</span>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                @* 1. Nút Review (Nếu Delivered) *@
+                                @if (order.Status == "Delivered")
+                                {
+                                    var firstItem = order.OrderDetails.FirstOrDefault();
+                                    if (firstItem != null)
+                                    {
+                                        var imgUrl = firstItem.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png";
+                                        if (reviewedOrders.Contains(order.Id))
+                                        {
+                                            <button type="button" class="btn btn-dark rounded-0 text-uppercase fw-bold py-2 px-4"
+                                                    style="font-size: 0.75rem; letter-spacing: 1px;"
+                                                    onclick="openViewReviewModal(@order.Id, '@firstItem.Product.Name', '@firstItem.Size', '@imgUrl')">
+                                                View Review
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-danger rounded-0 text-uppercase fw-bold py-2 px-4"
+                                                    style="font-size: 0.75rem; letter-spacing: 1px;"
+                                                    onclick="openFeedbackModal(@order.Id, @firstItem.ProductId, '@firstItem.Product.Name', '@firstItem.Size', '@imgUrl')">
+                                                Review
+                                            </button>
+                                        }
+                                    }
+                                }
+
+                                @* 👉 2. THÊM MỚI: NÚT PAY NOW (Chỉ hiện khi chưa thanh toán - Unpaid) *@
+                                @if (order.Status == "Unpaid")
+                                {
+                                    // Gọi thẳng lại cái trang PaymentMock (MoMo) của ní trong CheckoutController
+                                    <a href="/Checkout/PaymentMock?orderId=@order.Id&amount=@order.TotalAmount"
+                                       class="btn text-white rounded-0 text-uppercase fw-bold py-2 px-4"
+                                       style="font-size: 0.75rem; letter-spacing: 1px; background-color: #A50064;">
+                                        Pay Now
+                                    </a>
+                                }
+
+                                @* 👉 3. CẬP NHẬT: NÚT CANCEL (Hiện khi Pending hoặc Unpaid) *@
+                                @if (order.Status == "Pending" || order.Status == "Unpaid")
+                                {
+                                    <button type="button" class="btn btn-outline-danger rounded-0 text-uppercase fw-bold py-2 px-4"
+                                            style="font-size: 0.75rem; letter-spacing: 1px;"
+                                            onclick="openCancelModal(@order.Id)">
+                                        Cancel Order
+                                    </button>
+                                }
+
+                                @* 4. NÚT BUY AGAIN (Hiện khi Cancelled) *@
+                                @if (order.Status == "Cancelled")
+                                {
+                                    <button type="button" class="btn btn-dark rounded-0 text-uppercase fw-bold py-2 px-4"
+                                            style="font-size: 0.75rem; letter-spacing: 1px;"
+                                            onclick="handleBuyAgain(@order.Id)">
+                                        Buy Again
+                                    </button>
+                                }
+
+                                @* 5. NÚT DETAILS (Luôn hiện) *@
+                                <a asp-action="OrderDetails" asp-route-id="@order.Id"
+                                   class="btn btn-outline-dark rounded-0 text-uppercase fw-bold py-2 px-4"
+                                   style="font-size: 0.75rem; letter-spacing: 1px;">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+        .transition-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .25rem .75rem rgba(0,0,0,.05) !important;
+        }
+</style>
+
+@functions {
+    string GetStatusStyle(string status)
+    {
+        return status switch
+        {
+            "Unpaid" => "background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;", // Xám xám chờ đợi
+            "Pending" => "background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;", // Vàng cam
+            "Paid" => "background-color: #cce5ff; color: #004085; border: 1px solid #b8daff;", // Xanh dương đã lụm tiền
+            "Shipping" => "background-color: #cce5ff; color: #004085; border: 1px solid #b8daff;",
+            "Delivered" => "background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;",
+            "Cancelled" => "background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;",
+            _ => "background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;"
+        };
+    }
+}
+
+@* ================= BẮT ĐẦU KHU VỰC MODAL ĐÁNH GIÁ (THÊM MỚI) ================= *@
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-0 border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 bg-light py-3">
+                <h5 class="modal-title fw-bold text-uppercase" style="letter-spacing: 1px;">Product Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="feedbackForm" asp-controller="Review" asp-action="SubmitFeedback" method="post" enctype="multipart/form-data">
+                <div class="modal-body px-4 pt-2">
+                    <input type="hidden" name="OrderId" id="fbOrderId" />
+                    <input type="hidden" name="ProductId" id="fbProductId" />
+                    <input type="hidden" name="Rating" id="fbRating" value="5" />
+
+                    <div class="d-flex align-items-center mb-4 p-3 bg-light border rounded-1">
+                        <img id="fbProductImage" src="/images/no-image.png" alt="Product" style="width: 60px; height: 75px; object-fit: cover;" class="rounded shadow-sm">
+                        <div class="ms-3">
+                            <h6 class="fw-bold mb-1 text-uppercase text-dark" id="fbProductName">Product Name</h6>
+                            <div class="text-muted small" id="fbProductSize">Variant: -</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <p class="fw-bold mb-2 text-uppercase small">Product Quality</p>
+                        <div class="star-rating fs-1 text-warning" style="cursor: pointer;">
+                            <i class="fa-solid fa-star star-icon" data-value="1"></i>
+                            <i class="fa-solid fa-star star-icon" data-value="2"></i>
+                            <i class="fa-solid fa-star star-icon" data-value="3"></i>
+                            <i class="fa-solid fa-star star-icon" data-value="4"></i>
+                            <i class="fa-solid fa-star star-icon" data-value="5"></i>
+                        </div>
+                        <div id="ratingText" class="text-danger small mt-1 fw-bold text-uppercase">Excellent</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Share your thoughts <span class="text-danger">*</span></label>
+                        <textarea name="Comment" class="form-control rounded-0 border-dark" rows="3"
+                                  placeholder="Is the product comfortable? How is the fabric? Please share..." required></textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-uppercase">Add photos (Optional)</label>
+                        <input class="form-control rounded-0" type="file" name="ImageFile" id="fbImageFile" accept="image/*" onchange="previewFeedbackImage(this)">
+
+                        <div class="mt-2" id="fbImagePreviewContainer" style="display:none; position:relative; width: fit-content;">
+                            <img id="fbImagePreview" src="" alt="Preview" style="height: 80px; width: 80px; object-fit: cover;" class="border rounded">
+                            <button type="button" class="btn-close position-absolute top-0 start-100 translate-middle bg-white border rounded-circle p-1" style="font-size: 10px;" onclick="clearFeedbackImage()"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 px-4 pb-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-0 px-4 fw-bold" data-bs-dismiss="modal">RETURN</button>
+                    <button type="submit" class="btn btn-dark rounded-0 px-4 fw-bold">SUBMIT REVIEW</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ================= MODAL XEM LẠI ĐÁNH GIÁ (CHỈ ĐỌC) ================= *@
+<div class="modal fade" id="viewReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-0 border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 bg-light py-3">
+                <h5 class="modal-title fw-bold text-uppercase" style="letter-spacing: 1px;">Your Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body px-4 pt-2 pb-4">
+                <div class="d-flex align-items-center mb-4 p-3 bg-light border rounded-1">
+                    <img id="vrProductImage" src="" alt="Product" style="width: 60px; height: 75px; object-fit: cover;" class="rounded shadow-sm">
+                    <div class="ms-3">
+                        <h6 class="fw-bold mb-1 text-uppercase text-dark" id="vrProductName">Product Name</h6>
+                        <div class="text-muted small" id="vrProductSize">Variant: -</div>
+                    </div>
+                </div>
+
+                <div class="text-center mb-3">
+                    <div class="star-rating fs-3 text-warning" id="vrStars">
+                    </div>
+                    <div class="text-muted small mt-1" id="vrDate">Review Date</div>
+                </div>
+
+                <div class="mb-3 p-3 border rounded bg-white">
+                    <p class="mb-0" id="vrComment" style="font-style: italic;">"Content of the review..."</p>
+                </div>
+
+                <div id="vrImageContainer" style="display: none;" class="text-center">
+                    <p class="fw-bold small text-uppercase mb-2 text-start">Attached photos:</p>
+                    <img id="vrImage" src="" alt="Review Image" class="border rounded" style="max-height: 150px; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ================= MODAL HỦY ĐƠN HÀNG ================= *@
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-0 border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 bg-light py-3">
+                <h5 class="modal-title fw-bold text-uppercase" style="letter-spacing: 1px;">Cancel Order #<span id="cancelOrderIdDisplay"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body px-4 pt-2">
+                <input type="hidden" id="cancelOrderIdValue" />
+                <p class="text-muted small mb-3">Please select a reason for cancelling your order. This action cannot be undone.</p>
+
+                <div class="mb-3">
+                    <select id="cancelReasonSelect" class="form-select rounded-0 border-dark">
+                        <option value="" selected disabled>Select a reason...</option>
+                        <option value="I want to change the delivery address">I want to change the delivery address</option>
+                        <option value="I want to change/add a product">I want to change/add a product</option>
+                        <option value="I found a cheaper alternative elsewhere">I found a cheaper alternative elsewhere</option>
+                        <option value="I changed my mind, I don't want to buy anymore">I changed my mind, I don't want to buy anymore</option>
+                        <option value="Other reasons">Other reasons</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top-0 px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-0 px-4 fw-bold" data-bs-dismiss="modal">CLOSE</button>
+                <button type="button" class="btn btn-danger rounded-0 px-4 fw-bold" onclick="submitCancelOrder()">CONFIRM CANCEL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star-icon');
+            const ratingInput = document.getElementById('fbRating');
+            const ratingText = document.getElementById('ratingText');
+
+            const texts = ["Terrible", "Unsatisfactory", "Average", "Satisfactory", "Excellent"];
+
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    let val = this.getAttribute('data-value');
+                    ratingInput.value = val;
+                    ratingText.innerText = texts[val - 1];
+
+                    stars.forEach(s => {
+                        if(s.getAttribute('data-value') <= val) {
+                            s.classList.remove('fa-regular');
+                            s.classList.add('fa-solid');
+                        } else {
+                            s.classList.remove('fa-solid');
+                            s.classList.add('fa-regular');
+                        }
+                    });
+                });
+            });
+        });
+
+        // Function to handle toggle text and icon (English version)
+        function toggleCollapseText(btn, count) {
+            // Wait a tiny bit for Bootstrap to update the 'aria-expanded' attribute
+            setTimeout(() => {
+                let span = btn.querySelector('.toggle-text');
+                let icon = btn.querySelector('.toggle-icon');
+
+                // Check if the content is currently expanded
+                let isExpanded = btn.getAttribute('aria-expanded') === 'true';
+
+                if (isExpanded) {
+                    span.innerText = 'Collapse';
+                    icon.classList.remove('bi-chevron-down');
+                    icon.classList.add('bi-chevron-up');
+                } else {
+                    span.innerText = `View ${count} more items`;
+                    icon.classList.remove('bi-chevron-up');
+                    icon.classList.add('bi-chevron-down');
+                }
+            }, 50);
+        }
+
+        function openFeedbackModal(orderId, productId, productName, productSize, productImage) {
+            document.getElementById('fbOrderId').value = orderId;
+            document.getElementById('fbProductId').value = productId;
+            document.getElementById('fbProductName').innerText = productName;
+            document.getElementById('fbProductSize').innerText = 'Variant: ' + productSize;
+            if(productImage) document.getElementById('fbProductImage').src = productImage;
+
+            clearFeedbackImage();
+
+            var myModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            myModal.show();
+        }
+
+        function previewFeedbackImage(input) {
+            const previewContainer = document.getElementById('fbImagePreviewContainer');
+            const previewImage = document.getElementById('fbImagePreview');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearFeedbackImage() {
+            document.getElementById('fbImageFile').value = '';
+            document.getElementById('fbImagePreviewContainer').style.display = 'none';
+            document.getElementById('fbImagePreview').src = '';
+        }
+
+        function openViewReviewModal(orderId, productName, productSize, productImage) {
+            document.getElementById('vrProductName').innerText = productName;
+            document.getElementById('vrProductSize').innerText = 'Variant: ' + productSize;
+            document.getElementById('vrProductImage').src = productImage;
+
+            fetch(`/Review/GetReviewDetails?orderId=${orderId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        let starsHtml = '';
+                        for(let i=1; i<=5; i++) {
+                            starsHtml += (i <= data.rating) ? '<i class="fa-solid fa-star"></i> ' : '<i class="fa-regular fa-star"></i> ';
+                        }
+                        document.getElementById('vrStars').innerHTML = starsHtml;
+
+                        document.getElementById('vrComment').innerText = '"' + data.comment + '"';
+                        document.getElementById('vrDate').innerText = data.date;
+
+                        const imgContainer = document.getElementById('vrImageContainer');
+                        if (data.imageUrl) {
+                            document.getElementById('vrImage').src = data.imageUrl;
+                            imgContainer.style.display = 'block';
+                        } else {
+                            imgContainer.style.display = 'none';
+                        }
+
+                        var myModal = new bootstrap.Modal(document.getElementById('viewReviewModal'));
+                        myModal.show();
+                    } else {
+                        alert("No review data found!");
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openCancelModal(orderId) {
+            document.getElementById('cancelOrderIdDisplay').innerText = String(orderId).padStart(5, '0');
+            document.getElementById('cancelOrderIdValue').value = orderId;
+            document.getElementById('cancelReasonSelect').value = ""; // Reset form
+
+            var myModal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+            myModal.show();
+        }
+
+        function submitCancelOrder() {
+            const orderId = document.getElementById('cancelOrderIdValue').value;
+            const reason = document.getElementById('cancelReasonSelect').value;
+
+            if (!reason) {
+                alert("Please select a reason before cancelling!");
+                return;
+            }
+
+            $.ajax({
+                url: '/Profile/CancelOrder',
+                type: 'POST',
+                data: { orderId: orderId, cancelReason: reason },
+                success: function (res) {
+                    if (res.success) {
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                        modal.hide();
+                        window.location.href = '/Profile/MyOrders?status=Cancelled&cancelSuccess=true';
+                    } else {
+                        alert(res.msg);
+                    }
+                },
+                error: function () {
+                    alert("An error occurred while cancelling the order.");
+                }
+            });
+        }
+
+        function handleBuyAgain(orderId) {
+            $.ajax({
+                url: '/Profile/BuyAgain',
+                type: 'POST',
+                data: { orderId: orderId },
+                success: function (res) {
+                    if (res.success) {
+                        window.location.href = '/Cart';
+                    } else {
+                        alert("Lỗi: " + res.msg);
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối tới Server.");
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('cancelSuccess') === 'true') {
+                const msgBox = document.getElementById('statusMessageContainer');
+
+                msgBox.innerHTML = `
+                    <div class="alert alert-success rounded-0 py-2 small fw-bold d-flex justify-content-between align-items-center" style="letter-spacing: 1px;">
+                        <span><i class="fa-solid fa-check-circle me-2"></i> Order cancelled successfully!</span>
+                    </div>`;
+
+                setTimeout(() => {
+                    msgBox.innerHTML = '';
+                }, 3000);
+
+                window.history.replaceState({}, document.title, "/Profile/MyOrders?status=Cancelled");
+            }
+        });
+    </script>
+}
