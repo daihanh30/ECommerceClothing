@@ -42,7 +42,7 @@
                 </div>
 
                 <div class="auth-forgot">
-                    <a href="#">Forgot Password?</a>
+                    <a asp-action="ForgotPassword" asp-controller="Account" class="text-decoration-none text-muted small">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="auth-btn">Login</button>
@@ -50,6 +50,7 @@
 
             @{
                 var success = Context.Request.Query["success"].ToString();
+                var resetSuccess = Context.Request.Query["resetSuccess"].ToString(); // Lấy thêm biến này
             }
 
             @if (success == "true")
@@ -59,10 +60,27 @@
                         <div class="success-icon">✓</div>
 
                         <p class="success-text">
-                            Đăng ký tài khoản thành công
+                            Account registration successful
                         </p>
 
                         <button class="success-btn" onclick="closeSuccess()">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            }
+            @if (resetSuccess == "true")
+            {
+                <div class="success-overlay" id="resetOverlay">
+                    <div class="success-box">
+                        <div class="success-icon">✓</div>
+
+                        <p class="success-text">
+                            Password changed successfully!<br />
+                            Please login with your new password.
+                        </p>
+
+                        <button class="success-btn" onclick="closeResetSuccess()">
                             OK
                         </button>
                     </div>
@@ -77,6 +95,24 @@
 
                         // Xóa ?success=true khỏi URL
                         window.history.replaceState(null, "", "/Account/Login");
+                    }
+                                // Hàm mới để đóng popup Reset Password
+                    function closeResetSuccess() {
+                        document.getElementById("resetOverlay").style.display = "none";
+                        window.history.replaceState(null, "", "/Account/Login");
+                    }
+
+                    // Logic cũ cho toggle password (giữ nguyên)
+                    function togglePassword(id, el) {
+                        const input = document.getElementById(id);
+                        const icon = el.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.replace('fa-eye-slash', 'fa-eye');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.replace('fa-eye', 'fa-eye-slash');
+                        }
                     }
                 </script>
             }

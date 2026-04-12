@@ -6,7 +6,12 @@
     color: #cfd8dc;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    /* --- CÁC DÒNG CẦN SỬA VÀ THÊM VÀO --- */
+    height: 100vh; 
+    position: sticky;
+    top: 0;
+    overflow-y: auto; 
+    
 }
 
 /* PROFILE */
