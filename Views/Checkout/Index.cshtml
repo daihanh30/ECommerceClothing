@@ -195,7 +195,7 @@
         </div>
     </div>
 
-    @* 2. Modal Danh sách địa chỉ *@
+  
     @* 2. Modal Danh sách địa chỉ *@
     <div class="modal fade" id="addressListModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -219,7 +219,7 @@
         </div>
     </div>
 
-    @* 3. Modal Thêm địa chỉ mới *@
+@* 3. Modal Thêm địa chỉ mới *@
     <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 rounded-4">
@@ -248,8 +248,12 @@
                                     <option value="" selected disabled>Select Ward</option>
                                 </select>
                             </div>
+
                             <div class="col-12 mb-3">
                                 <input type="text" id="newAddressDetail" class="form-control" placeholder="Specific Address (House number, street...)">
+                                <small id="addressErrorMsg" class="text-danger d-none mt-1 fw-bold">
+                                    <i class="fa-solid fa-circle-exclamation me-1"></i> Please enter and select the full address!
+                                </small>
                             </div>
                         </div>
 
@@ -268,8 +272,7 @@
             </div>
         </div>
     </div>
-    @* <div asp-validation-summary="All" class="text-danger"></div> *@
-</div>
+
 <div class="modal fade" id="voucherErrorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow">
@@ -720,12 +723,21 @@
             const provSelect = document.getElementById('newProvince');
             const distSelect = document.getElementById('newDistrict');
             const wardSelect = document.getElementById('newWard');
+            const errorMsg = document.getElementById('addressErrorMsg');
             const detailInput = document.getElementById('newAddressDetail').value;
+            const detailInputEl = document.getElementById('newAddressDetail');
 
-            if (!provSelect.value || !distSelect.value || !wardSelect.value || !detailInput) {
-                alert("Please enter and select the full address!");
-                return;
-            }
+                    errorMsg.classList.add('d-none');
+                    detailInputEl.classList.remove('is-invalid');
+
+                    // 2. Kiểm tra điều kiện
+                    if (!provSelect.value || !distSelect.value || !wardSelect.value || !detailInput) {
+                        // Hiện dòng chữ đỏ lên thay vì popup
+                        errorMsg.classList.remove('d-none');
+                        // Đổi viền ô input thành màu đỏ cho trực quan
+                        detailInputEl.classList.add('is-invalid');
+                        return;
+                    }
 
             const provText = provSelect.options[provSelect.selectedIndex].text;
             const distText = distSelect.options[distSelect.selectedIndex].text;
