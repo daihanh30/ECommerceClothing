@@ -4,10 +4,9 @@
 @inject UserManager<AppUser> UserManager
 @inject ECommerceClothing.Data.AppDbContext _context
 @{
-    // Lấy categoryId từ URL để kiểm tra
     var currentCat = Context.Request.Query["categoryId"].ToString();
+    var menuCategories = _context.Categories.Include(c => c.ProductTypes).ToList();
 
-    // --- DI CHUYỂN LOGIC VOUCHER LÊN ĐÂY CHO DỄ QUẢN LÝ ---
     var activeVouchers = _context.Vouchers
         .Where(v => v.IsActive == true
                  && v.IsPublic == false
@@ -32,9 +31,8 @@
     @RenderSection("Styles", required: false)
 
     <style>
-        /* CSS cho phần thân trang để không bị thanh voucher che khuất nội dung nếu dùng fixed-bottom */
         body {
-            padding-bottom: 30px; /* Thêm padding bằng chiều cao của thanh voucher */
+            padding-bottom: 30px;
         }
     </style>
 </head>
@@ -62,36 +60,68 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link @(currentCat == "1" ? "active fw-bold text-dark" : "")"
-                           asp-controller="Product"
-                           asp-action="Index"
-                           asp-route-categoryId="1">
-                            Tops
-                        </a>
-                    </li>
+                    @foreach (var cat in menuCategories.Take(3))
+                    {
+                        <li class="nav-item hover-dropdown position-relative">
+                            <a class="nav-link @(currentCat == cat.Id.ToString() ? "active fw-bold text-dark" : "")"
+                               asp-controller="Product"
+                               asp-action="Index"
+                               asp-route-categoryId="@cat.Id">
+                                @cat.Name
+                            </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link @(currentCat == "2" ? "active fw-bold text-dark" : "")"
-                           asp-controller="Product"
-                           asp-action="Index"
-                           asp-route-categoryId="2">
-                            Bottoms
-                        </a>
-                    </li>
+                            @if (cat.ProductTypes != null && cat.ProductTypes.Any())
+                            {
+                                <ul class="dropdown-menu border-0 shadow-sm mt-0 position-absolute">
+                                    @foreach (var type in cat.ProductTypes)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item py-2 text-muted"
+                                               asp-controller="Product"
+                                               asp-action="Index"
+                                               asp-route-categoryId="@cat.Id"
+                                               asp-route-typeId="@type.ProductTypeId">
+                                                @type.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    }
 
-                    <li class="nav-item">
-                        <a class="nav-link @(currentCat == "3" ? "active fw-bold text-dark" : "")"
-                           asp-controller="Product"
-                           asp-action="Index"
-                           asp-route-categoryId="3">
-                            Accessories
-                        </a>
-                    </li>
+                    @if (menuCategories.Count > 3)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle no-underline text-dark fw-bold d-flex align-items-center"
+                               href="#" id="moreCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                               style="text-decoration: none !important;">
+                                Collections <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <ul class="dropdown-menu border-0 shadow-sm" aria-labelledby="moreCategoriesDropdown">
+                                @foreach (var cat in menuCategories.Skip(3))
+                                {
+                                    <li>
+                                        <a class="dropdown-item @(currentCat == cat.Id.ToString() ? "fw-bold bg-light" : "")"
+                                           asp-controller="Product"
+                                           asp-action="Index"
+                                           asp-route-categoryId="@cat.Id">
+                                            @cat.Name
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                    
                 </ul>
 
                 <form asp-controller="Product" asp-action="Search" method="get" class="nav-search me-4">
-                    <input type="text" name="query" placeholder="Search here..." value="@Context.Request.Query["query"]" />
+                    <input type="text" name="query" placeholder="Search here..."
+                           value="@Context.Request.Query["query"]"
+                           pattern=".*\S+.*"
+                           title="Please enter a valid keyword."
+                           required />
                     <button type="submit"><i class="fa fa-search"></i></button>
                 </form>
 
@@ -144,7 +174,6 @@
         </div>
     </nav>
     
-
     <main role="main">
         @RenderBody()
     </main>
@@ -177,13 +206,105 @@
         </ul>
     </div>
 
-    <footer class="bg-light text-center py-4 mt-5">
+    <footer class="footer-section text-white pt-5 pb-2">
         <div class="container">
-            <p class="mb-0">© 2026 NICHOLSON. All rights reserved.</p>
+            <div class="row border-bottom pb-4">
+                 
+                <div class="col-md-3 mb-4">
+                    <h5 class="logo-text mb-3" style="color: white; font-size: 1.4rem;">
+                        NIXONÉ<span class="logo-dot">®</span>
+                    </h5>
+                    <p class="footer-desc">
+                        Elevate your street style with NIXONÉ. High-quality clothing designed for the modern urban soul.
+                    </p>
+
+                    <div class="mt-3">
+                        <a href="#" class="footer-link d-block">
+                            <i class="fa-brands fa-facebook-f me-2"></i> Nixone.vn
+                        </a>
+                        <a href="#" class="footer-link d-block">
+                            <i class="fa-brands fa-instagram me-2"></i> Nixone.store.vn
+                        </a>
+                    </div>
+                </div>
+                 
+                <div class="col-md-3 mb-4">
+                    <h6 class="footer-title">Store Locations</h6>
+                    <ul class="list-unstyled footer-text">
+                        <li class="mb-2">
+                            <i class="fa-solid fa-location-dot me-2"></i>
+                            <strong>Hanoi:</strong> 123 Ba Dinh St, Ba Dinh Dist.
+                        </li>
+                        <li class="mb-2">
+                            <i class="fa-solid fa-location-dot me-2"></i>
+                            <strong>Saigon:</strong> 456 Le Loi St, Dist 1, HCMC.
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-location-dot me-2"></i>
+                            <strong>Can Tho:</strong> 789 Ninh Kieu St, Ninh Kieu Dist.
+                        </li>
+                    </ul>
+                </div>
+                 
+                <div class="col-md-3 mb-4">
+                    <h6 class="footer-title">Customer Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="footer-link">Size Guide</a></li>
+                        <li class="mb-2"><a href="#" class="footer-link">Shipping Policy</a></li>
+                        <li class="mb-2"><a href="#" class="footer-link">Returns & Exchanges</a></li>
+                        <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-2 mb-4">
+                    <h6 class="footer-title">Contact Us</h6>
+
+                    <ul class="list-unstyled footer-text">
+                        <li class="mb-2 d-flex align-items-start">
+                            <i class="fa-solid fa-envelope me-2 mt-1"></i>
+                            <span class="email-text">cskh.nixoneoficial@gmail.com</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fa-solid fa-phone me-2"></i> 1900 1289
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-clock me-2"></i> Mon - Sun | 09:00 - 22:00
+                        </li>
+                    </ul>
+                </div>
+
+                
+                <div class="col-md-3 mb-4">
+                    <h6 class="footer-title">Payments</h6>
+
+                    <div class="d-flex flex-column gap-3 mt-3">
+
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <span>Cash on Delivery</span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="~/images/momo_logo.jpg"
+                                 style="height: 22px;">
+                            <span>MoMo Wallet</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <p class="footer-copy">
+                        © 2026 NIXONÉ Studio. All rights reserved.
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
-    @* --- THANH VOUCHER HIỂN THỊ DƯỚI CÙNG TRANG MÀN HÌNH --- *@
     @if (activeVouchers.Any())
     {
         <div class="voucher-ticker-container">
@@ -209,7 +330,6 @@
         </div>
     }
 
-    @* --- CÁC THÀNH PHẦN KHÁC (MINI CART, QUICK VIEW, SIZE GUIDE) GIỮ NGUYÊN --- *@
     <div class="offcanvas offcanvas-end" tabindex="-1" id="cartSidebar" aria-labelledby="cartSidebarLabel">
         <div class="cart-header border-bottom p-3 d-flex justify-content-between align-items-center">
             <h5 class="cart-title mb-0 fw-bold text-uppercase" style="letter-spacing: 2px;">Cart</h5>
@@ -250,8 +370,9 @@
         </div>
     </div>
     
-
-    @* --- JS SCRIPTS --- *@
+    <script>
+        const isCurrentUserAdmin = @(User.Identity.IsAuthenticated && User.IsInRole("Admin") ? "true" : "false");
+    </script> 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

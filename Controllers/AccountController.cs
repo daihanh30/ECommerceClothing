@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using ECommerceClothing.Data;
 using ECommerceClothing.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Mail;
 
@@ -11,35 +13,34 @@ namespace ECommerceClothing.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _config; // Thêm để đọc cấu hình Email
+        private readonly AppDbContext _context;
 
         public AccountController(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             RoleManager<IdentityRole> roleManager,
-            IConfiguration config) // Inject IConfiguration
+            AppDbContext context)  
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
-            _config = config;
+            _context = context;
         }
 
-        // ================= FORGOT PASSWORD (OTP) =================
+        //FORGOT PASSWORD (OTP) 
 
         [HttpGet]
-
         public IActionResult ForgotPassword() => View();
 
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            if (string.IsNullOrEmpty(email))
+
+            if (string.IsNullOrWhiteSpace(email))
             {
                 ViewBag.Error = "Please enter your email address.";
                 return View();
             }
-
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
@@ -47,29 +48,34 @@ namespace ECommerceClothing.Controllers
                 return View();
             }
 
-            // 1. Tạo OTP 6 số
             string otpCode = new Random().Next(100000, 999999).ToString();
 
-            // 2. Lưu vào DB (Hạn dùng 5 phút)
             user.ResetPasswordOtp = otpCode;
             user.OtpExpiryTime = DateTime.Now.AddMinutes(5);
             await _userManager.UpdateAsync(user);
 
-            // 3. Gửi Email thực tế
             try
             {
-                var senderEmail = _config["EmailSettings:SenderEmail"];
-                var senderPassword = _config["EmailSettings:SenderPassword"];
-                var senderName = _config["EmailSettings:SenderName"];
+                var emailSettings = await _context.ShopSettings.FirstOrDefaultAsync();
+
+                if (emailSettings == null || string.IsNullOrEmpty(emailSettings.SenderEmail) || string.IsNullOrEmpty(emailSettings.SenderPassword))
+                {
+                    ViewBag.Error = "The email system has not been configured. Please contact the administrator.";
+                    return View();
+                }
+
+                var senderEmail = emailSettings.SenderEmail;
+                var senderPassword = emailSettings.SenderPassword;
+                var senderName = emailSettings.SenderName ?? "Nixone Official";
 
                 var mail = new MailMessage();
                 mail.To.Add(email);
                 mail.From = new MailAddress(senderEmail, senderName);
                 mail.Subject = "NIXONE - Password Reset OTP";
                 mail.Body = $"<div style='font-family: Arial;'><h2>Password Reset Request</h2>" +
-                           $"<p>Hello {user.FullName},</p>" +
-                           $"<p>Your verification code is: <b style='font-size: 20px; color: #f87171;'>{otpCode}</b></p>" +
-                           $"<p>This code will expire in 5 minutes. If you didn't request this, please ignore this email.</p></div>";
+                            $"<p>Hello {user.FullName},</p>" +
+                            $"<p>Your verification code is: <b style='font-size: 20px; color: #f87171;'>{otpCode}</b></p>" +
+                            $"<p>This code will expire in 5 minutes. If you didn't request this, please ignore this email.</p></div>";
                 mail.IsBodyHtml = true;
 
                 using var smtp = new SmtpClient("smtp.gmail.com", 587);
@@ -79,13 +85,16 @@ namespace ECommerceClothing.Controllers
 
                 return RedirectToAction("VerifyOTP", new { email = email });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine("Lỗi gửi mail: " + ex.Message);
                 ViewBag.Error = "An error occurred while sending the email. Please try again later.";
                 return View();
             }
         }
+        
 
+        // Hiển thị ra UI
         [HttpGet]
         public IActionResult VerifyOTP(string email)
         {
@@ -93,13 +102,20 @@ namespace ECommerceClothing.Controllers
             return View();
         }
 
+        // form ở UI khi submit sẽ vào đây
         [HttpPost]
         public async Task<IActionResult> VerifyOTP(string email, string otp)
         {
             var user = await _userManager.FindByEmailAsync(email);
+
+            if (string.IsNullOrWhiteSpace(otp))
+            {
+                ViewBag.Email = email;
+                ViewBag.Error = "Please enter the OTP code.";
+                return View();
+            }
             if (user != null && user.ResetPasswordOtp == otp && user.OtpExpiryTime > DateTime.Now)
             {
-                // Mã đúng và còn hạn -> Cho phép qua trang Reset
                 return RedirectToAction("ResetPassword", new { email = email });
             }
 
@@ -124,16 +140,19 @@ namespace ECommerceClothing.Controllers
                 ViewBag.Email = email;
                 return View();
             }
-
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                ViewBag.Error = "The new password must not be blank or contain only spaces!";
+                ViewBag.Email = email;
+                return View();
+            }
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
-                // Xóa OTP sau khi dùng xong
                 user.ResetPasswordOtp = null;
                 user.OtpExpiryTime = null;
                 await _userManager.UpdateAsync(user);
 
-                // Reset mật khẩu bằng Identity
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
@@ -149,13 +168,55 @@ namespace ECommerceClothing.Controllers
             return View();
         }
 
-        // ================= REGISTER (ĐĂNG KÝ) =================
+        //REGISTER 
         [HttpGet]
         public IActionResult Register() => View();
 
         [HttpPost]
         public async Task<IActionResult> Register(User model, string confirmPassword)
         {
+            bool isNameEmpty = string.IsNullOrWhiteSpace(model.FullName);
+            bool isEmailEmpty = string.IsNullOrWhiteSpace(model.Email);
+            bool isPassEmpty = string.IsNullOrWhiteSpace(model.Password);
+            bool isConfirmEmpty = string.IsNullOrWhiteSpace(confirmPassword);
+
+            if (isNameEmpty && isEmailEmpty && isPassEmpty && isConfirmEmpty)
+            {
+                ViewBag.Error = "Please enter all the required information!";
+                return View(model);
+            }
+
+            if (isNameEmpty)
+            {
+                ViewBag.Error = "Invalid full name (cannot be empty or contain only spaces)!";
+                return View(model);
+            }
+
+            if (isEmailEmpty)
+            {
+                ViewBag.Error = "Invalid email (cannot be empty or contain only spaces)!";
+                return View(model);
+            }
+
+            if (!model.Email.Contains("@") || !model.Email.Contains("."))
+            {
+                ViewBag.Error = "Please enter a valid email address (must include '@')!";
+                return View(model);
+            }
+
+            if (isPassEmpty)
+            {
+                ViewBag.Error = "Invalid password (cannot be empty or contain only spaces)!";
+                return View(model);
+            }
+
+            if (isConfirmEmpty)
+            {
+                ViewBag.Error = "Please confirm your password!";
+
+                return View(model);
+            }
+
             if (model.Password != confirmPassword)
             {
                 ViewBag.Error = "The re-entered password does not match!";
@@ -187,7 +248,7 @@ namespace ECommerceClothing.Controllers
             return View(model);
         }
 
-        // ================= LOGIN (ĐĂNG NHẬP) =================
+        //LOGIN 
         [HttpGet]
         public IActionResult Login()
         {
@@ -198,9 +259,27 @@ namespace ECommerceClothing.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            bool isEmailEmpty = string.IsNullOrWhiteSpace(email);
+            bool isPasswordEmpty = string.IsNullOrWhiteSpace(password);
+
+            if (isEmailEmpty && isPasswordEmpty)
             {
-                ViewBag.Error = "Please enter all the required information!";
+                ViewBag.Error = "Please enter both email and password!";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (isEmailEmpty)
+            {
+                ViewBag.Error = "Invalid email (cannot be empty or contain only spaces)!";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (isPasswordEmpty)
+            {
+                ViewBag.Error = "Invalid password (cannot be empty or contain only spaces)!";
+                ViewBag.Email = email;
                 return View();
             }
 
@@ -215,10 +294,11 @@ namespace ECommerceClothing.Controllers
             }
 
             ViewBag.Error = "Incorrect email or password!";
+            ViewBag.Email = email;
             return View();
         }
 
-        // ================= LOGOUT =================
+        //LOGOUT
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -226,7 +306,7 @@ namespace ECommerceClothing.Controllers
             return RedirectToAction("Login");
         }
 
-        // ================= TẠO ADMIN (CHẠY 1 LẦN) =================
+        //TẠO ADMIN 
         [HttpGet]
         public async Task<IActionResult> CreateAdmin()
         {

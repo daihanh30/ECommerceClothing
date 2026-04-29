@@ -9,7 +9,6 @@
         <div class="auth-left">
             <h2>Welcome Back!!</h2>
 
-            @* 👉 ĐÃ FIX: Chèn dòng báo lỗi chữ đỏ vào ngay đây, nằm giữa Welcome và Form *@
             @if (!string.IsNullOrEmpty(ViewBag.Error as string))
             {
                 <p class="text-center fw-bold" style="color: #dc3545; font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px;">
@@ -21,22 +20,14 @@
 
                 <div class="auth-group">
                     <label>Email</label>
-                    <input type="email"
-                           name="email"
-                           required
-                           placeholder="email@gmail.com">
+                    <input type="email" name="email" placeholder="email@gmail.com" value="@ViewBag.Email" />
                 </div>
 
                 <div class="auth-group password-group">
                     <label>Password</label>
-                    <input type="password"
-                           id="loginPassword"
-                           name="password"
-                           required
-                           placeholder="Enter your password">
+                    <input type="password" id="loginPass" name="password" placeholder="Enter password">
 
-                    <span class="toggle-password"
-                          onclick="togglePassword('loginPassword', this)">
+                    <span class="toggle-password" onclick="togglePassword('loginPass', this)">
                         <i class="fa-regular fa-eye-slash"></i>
                     </span>
                 </div>
@@ -50,7 +41,7 @@
 
             @{
                 var success = Context.Request.Query["success"].ToString();
-                var resetSuccess = Context.Request.Query["resetSuccess"].ToString(); // Lấy thêm biến này
+                var resetSuccess = Context.Request.Query["resetSuccess"].ToString();  
             }
 
             @if (success == "true")
@@ -89,20 +80,16 @@
 
             @section Scripts {
                 <script>
-                    function closeSuccess() {
-                        // Ẩn popup
+                    function closeSuccess() { 
                         document.getElementById("successOverlay").style.display = "none";
-
-                        // Xóa ?success=true khỏi URL
+                         
                         window.history.replaceState(null, "", "/Account/Login");
-                    }
-                                // Hàm mới để đóng popup Reset Password
+                    } 
                     function closeResetSuccess() {
                         document.getElementById("resetOverlay").style.display = "none";
                         window.history.replaceState(null, "", "/Account/Login");
                     }
-
-                    // Logic cũ cho toggle password (giữ nguyên)
+                     
                     function togglePassword(id, el) {
                         const input = document.getElementById(id);
                         const icon = el.querySelector('i');

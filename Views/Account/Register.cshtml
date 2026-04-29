@@ -1,15 +1,14 @@
 ﻿@model ECommerceClothing.Models.User
 @{
     ViewData["Title"] = "Register";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Đảm bảo đường dẫn Layout đúng
+    Layout = "~/Views/Shared/_Layout.cshtml";  
 }
 
 <div class="auth-page">
     <div class="auth-box">
         <div class="auth-left">
             <h2>Create Account</h2>
-
-            @* 👉 ĐÃ FIX: Chèn dòng báo lỗi chữ đỏ vào ngay đây *@
+             
             @if (ViewBag.Error != null)
             {
                 <p class="text-center fw-bold" style="color: #dc3545; font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px;">
@@ -17,21 +16,21 @@
                 </p>
             }
 
-            <form asp-controller="Account" asp-action="Register" method="post">
+            <form asp-controller="Account" asp-action="Register" method="post" novalidate>
 
                 <div class="auth-group">
                     <label>Full name</label>
-                    <input type="text" name="FullName" required placeholder="Your full name" value="@Model?.FullName" />
+                    <input type="text" name="FullName" placeholder="Your full name" value="@Model?.FullName" />
                 </div>
 
                 <div class="auth-group">
                     <label>Email</label>
-                    <input type="email" name="Email" required placeholder="email@gmail.com" value="@Model?.Email" />
+                    <input type="email" name="Email" placeholder="email@gmail.com" value="@Model?.Email" />
                 </div>
 
                 <div class="auth-group password-group">
                     <label>Password</label>
-                    <input type="password" id="regPass" name="Password" required placeholder="Enter password">
+                    <input type="password" id="regPass" name="Password" placeholder="Enter password">
                     <span class="toggle-password" onclick="togglePassword('regPass', this)">
                         <i class="fa-regular fa-eye-slash"></i>
                     </span>
@@ -39,7 +38,7 @@
 
                 <div class="auth-group password-group">
                     <label>Confirm password</label>
-                    <input type="password" id="confirmPass" name="confirmPassword" required placeholder="Confirm password">
+                    <input type="password" id="confirmPass" name="confirmPassword" placeholder="Confirm password">
                     <span class="toggle-password" onclick="togglePassword('confirmPass', this)">
                         <i class="fa-regular fa-eye-slash"></i>
                     </span>

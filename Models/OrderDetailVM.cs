@@ -2,10 +2,8 @@
 {
     public class OrderDetailVM
     {
-        public Order OrderInfo { get; set; } // Chứa FullName, Address, Status...
-        public List<OrderItemInfo> Items { get; set; } // Danh sách món hàng có ảnh
-
-      
+        public Order OrderInfo { get; set; } 
+        public List<OrderItemInfo> Items { get; set; } 
         public decimal Subtotal => Items.Sum(x => x.Price * x.Quantity);
     }
 

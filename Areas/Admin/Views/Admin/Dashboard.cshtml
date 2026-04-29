@@ -5,12 +5,39 @@
 }
 
 <div class="container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold m-0">Dashboard Overview</h2>
-        <a asp-controller="Admin" asp-action="ExportDashboardReport" class="btn btn-dark btn-sm shadow-sm">
-            <i class="fa-solid fa-file-export me-1"></i> Export Report
-        </a>
-    </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0">Dashboard Overview</h2>
+
+            <div class="dropdown ms-auto">
+                <button class="btn btn-dark btn-sm shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-file-export me-1"></i> Export Report
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><h6 class="dropdown-header fw-bold text-uppercase">Select Period</h6></li>
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Admin" asp-action="ExportDashboardReport" asp-route-range="this_week">
+                            <i class="fa-regular fa-calendar-week me-2 text-muted"></i> This Week
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Admin" asp-action="ExportDashboardReport" asp-route-range="this_month">
+                            <i class="fa-regular fa-calendar-days me-2 text-muted"></i> This Month
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Admin" asp-action="ExportDashboardReport" asp-route-range="last_month">
+                            <i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Last Month
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item py-2 fw-bold" asp-controller="Admin" asp-action="ExportDashboardReport" asp-route-range="all">
+                            <i class="fa-solid fa-download me-2"></i> Export All Time
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -95,10 +122,11 @@
                                         <div class="small text-muted">@o.PhoneNumber</div>
                                     </td>
 
-                                    <td class="fw-bold text-center text-danger">@(o.TotalAmount.ToString("#,##0")) VND</td>
+                                    <td class="fw-bold text-center text-dark">@(o.TotalAmount.ToString("#,##0")) VND</td>
 
                                     <td class="text-center">
-                                        <span class="badge rounded-pill @GetBadgeClass(o.Status) px-3 py-1">@o.Status</span>
+
+                                        <span class="status-badge @GetBadgeClass(o.Status)">@o.Status</span>
                                     </td>
                                 </tr>
                             }
@@ -116,33 +144,29 @@
     </div>
 </div>
 
-@* 👉 ĐÃ FIX: Đưa @functions ra ngoài thẻ div cha *@
 @functions {
     string GetBadgeClass(string status)
     {
         return status switch
         {
-            "Pending" => "bg-warning text-dark",
-            "Paid" => "bg-primary",
-            "Shipping" => "bg-info text-dark",
-            "Delivered" => "bg-success",
-            "Cancelled" => "bg-danger",
-            _ => "bg-secondary"
+            "Pending" => "status-pending",
+            "Paid" => "status-paid",
+            "Shipping" => "status-shipping",
+            "Delivered" => "status-delivered",
+            "Cancelled" => "status-cancelled",
+            _ => "status-default"
         };
     }
 }
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // 🚨 CHÚ Ý: 3 dòng này cực kỳ quan trọng để kiểm tra xem C# có nạp đúng số liệu hay không!
-        console.log("=== DATA TỪ C# CHẠY XUỐNG ===");
-        console.log("Nhãn trục ngang (Ngày):", @Html.Raw(Json.Serialize(Model.ChartLabels)));
-        console.log("Data doanh thu (Tiền):", @Html.Raw(Json.Serialize(Model.ChartData)));
-        console.log("Data biểu đồ tròn (Số lượng):", @Html.Raw(Json.Serialize(Model.OrderStatusCounts)));
+        console.log("DATA FLOWING DOWN FROM C#");
+        console.log("Horizontal axis label (Date):", @Html.Raw(Json.Serialize(Model.ChartLabels)));
+        console.log("Revenue data (Money):", @Html.Raw(Json.Serialize(Model.ChartData)));
+        console.log("Pie chart data (Quantity):", @Html.Raw(Json.Serialize(Model.OrderStatusCounts)));
 
-        // ----------------------------------------------------
-        // 1. CẤU HÌNH BIỂU ĐỒ DOANH THU (Line Chart)
-        // ----------------------------------------------------
+        //Line Chart
         const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
         new Chart(ctxRevenue, {
             type: 'line',
@@ -151,8 +175,8 @@
                 datasets: [{
                     label: 'Revenue',
                     data: @Html.Raw(Json.Serialize(Model.ChartData)),
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#00b074',
+                    backgroundColor: 'rgba(0, 176, 116, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4,
@@ -195,9 +219,7 @@
             }
         });
 
-        // ----------------------------------------------------
-        // 2. CẤU HÌNH BIỂU ĐỒ TRÒN (Order Status Doughnut Chart)
-        // ----------------------------------------------------
+        //biểu đồ tròn
         const ctxCategory = document.getElementById('categoryChart').getContext('2d');
         new Chart(ctxCategory, {
             type: 'doughnut',
@@ -206,8 +228,8 @@
                 datasets: [{
                     data: @Html.Raw(Json.Serialize(Model.OrderStatusCounts)),
                     backgroundColor: [
-                        '#198754', // Xanh lá cho Delivered
-                        '#dc3545'  // Đỏ cho Cancelled
+                        '#10b981', 
+                        '#f59e0b'  
                     ],
                     borderWidth: 2,
                     borderColor: '#fff',

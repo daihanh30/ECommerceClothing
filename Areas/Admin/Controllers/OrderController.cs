@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 namespace ECommerceClothing.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    // [Authorize(Roles = "Admin")] // Bỏ comment dòng này nếu ní đã làm phân quyền Role
     public class OrderController : Controller
     {
         private readonly AppDbContext _context;
@@ -34,7 +33,7 @@ namespace ECommerceClothing.Areas.Admin.Controllers
             return View(orders);
         }
 
-        // 1. Hàm hiển thị trang Chi tiết đơn hàng
+        // Hàm hiển thị trang Chi tiết đơn hàng
         public async Task<IActionResult> Details(int id)
         {
             // Tìm đơn hàng kèm theo chi tiết sản phẩm bên trong

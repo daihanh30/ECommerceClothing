@@ -2,82 +2,121 @@
 @{
     Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
     ViewData["Title"] = "Product Types";
+
+    // LINQ dùng để nhóm các mục tùy theo category
+    var groupedProductTypes = Model
+        .GroupBy(p => p.Category?.Name ?? "Uncategorized")
+        .OrderBy(g => g.Key);
 }
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Manage Product Types</h2>
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
-        + New Type
-    </button>
-</div>
+<div class="container-fluid px-4 mt-4 mb-5">
+    <div class="mx-auto" style="max-width: 1100px;">
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-bordered align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width:80px">ID</th>
-                    <th>Category</th>
-                    <th>Product Type Name</th>
-                    <th style="width:220px" class="text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@item.ProductTypeId</td>
-                        <td>
-                            <span class="badge bg-secondary">@item.Category?.Name</span>
-                        </td>
-                        <td class="fw-semibold">@item.Name</td>
-                        <td class="text-center">
-                            <div class="d-flex gap-2 justify-content-center">
-                                <button type="button" class="btn btn-success btn-sm px-3"
-                                        onclick="openEditModal('@item.ProductTypeId', '@item.Name', '@item.CategoryId')">
-                                    <i class="bi bi-pencil-square"></i> Edit
-                                </button>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0 text-dark">Manage Product Types</h2>
+            <button type="button" class="btn btn-confirm px-4" data-bs-toggle="modal" data-bs-target="#createModal">
+                <i class="bi bi-plus-lg me-1"></i> New
+            </button>
+        </div>
 
-                                <button type="button" class="btn btn-danger btn-sm px-3"
-                                        onclick="deleteConfirm('@item.ProductTypeId')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr style="letter-spacing: 0.5px;">
+                                <th class="ps-4 py-3 border-0" style="width:100px;">NO.</th>
+                                <th class="py-3 border-0">Product Type Name</th>
+                                <th class="text-end pe-4 py-3 border-0" style="width:250px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                int globalIndex = 1; // Khôi phục biến đếm
+
+                                // VÒNG LẶP ĐẦU TIÊN: Duyệt qua từng Category
+                                @foreach (var group in groupedProductTypes)
+                                {
+                                    // Hàng tiêu đề phân loại (Gộp 3 cột lại)
+                                    <tr class="table-group-header">
+                                        <td colspan="3" class="ps-4 py-3 border-bottom-0">
+                                            @group.Key
+                                            <span class="badge bg-white text-muted border ms-2 rounded-pill">@group.Count() items</span>
+                                        </td>
+                                    </tr>
+
+                                    // VÒNG LẶP THỨ HAI: In ra các Product Type thuộc Category đó
+                                    @foreach (var item in group)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-muted">#@globalIndex.ToString("D3")</td>
+
+                                            <td class="ps-4 fw-bold text-dark" style="font-size: 15px;">
+                                                @item.Name
+                                            </td>
+
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex gap-2 justify-content-end">
+                                                    <button type="button" class="btn btn-soft btn-sm px-3"
+                                                            onclick="openEditModal('@item.ProductTypeId', '@item.Name', '@item.CategoryId')">
+                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-soft-danger btn-sm px-3"
+                                                            onclick="deleteConfirm('@item.ProductTypeId')">
+                                                        <i class="bi bi-trash me-1"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        globalIndex++;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted fst-italic">
+                                        <i class="bi bi-layers fs-1 d-block mb-2"></i>
+                                        No product types found. Let's create one!
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">Add Product Type</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">Add Product Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-controller="ProductTypes" asp-action="Create" method="post">
+            <form id="createProductTypeForm" asp-controller="ProductTypes" asp-action="Create" method="post">
                 <div class="modal-body p-4">
                     @Html.AntiForgeryToken()
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Parent Category</label>
-                        <select name="CategoryId" class="form-select form-select-lg" asp-items="ViewBag.CategoryId" required>
-                            <option value="">Select Category</option>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Parent Category</label>
+                        <select id="create_categoryId" name="CategoryId" class="form-select form-select-lg bg-light border-0" style="font-size: 15px;" asp-items="ViewBag.CategoryId" required>
+                            <option value="">Select Category...</option>
                         </select>
+                        <small id="error-create-cat" class="text-danger d-none mt-2 fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Please select a parent category.</small>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Product Type Name</label>
-                        <input name="Name" class="form-control form-control-lg" placeholder="e.g. Hoodie, Jeans..." required />
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Product Type Name</label>
+                        <input id="create_name" name="Name" class="form-control form-control-lg bg-light border-0" style="font-size: 15px;" placeholder="E.g., Hoodie, Jeans..." required />
+                        <small id="error-create-name" class="text-danger d-none mt-2 fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Name cannot be empty.</small>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-dark">Save</button>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-soft px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-confirm px-4">Save</button>
                 </div>
             </form>
         </div>
@@ -87,90 +126,112 @@
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">Edit Product Type</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">Edit Product Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-controller="ProductTypes" asp-action="Edit" method="post">
+            <form id="editProductTypeForm" asp-controller="ProductTypes" asp-action="Edit" method="post">
                 <div class="modal-body p-4">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="ProductTypeId" id="edit_id" />
+                    <input type="hidden" name="Id" id="edit_id" />
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Parent Category</label>
-                        <select name="CategoryId" id="edit_categoryId" class="form-select form-select-lg" asp-items="ViewBag.CategoryId" required>
-                        </select>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Parent Category</label>
+                        <select name="CategoryId" id="edit_categoryId" class="form-select form-select-lg bg-light border-0" style="font-size: 15px;" asp-items="ViewBag.CategoryId" required></select>
+                        <small id="error-edit-cat" class="text-danger d-none mt-2 fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Please select a parent category.</small>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Product Type Name</label>
-                        <input name="Name" id="edit_name" class="form-control form-control-lg" required />
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Product Type Name</label>
+                        <input name="Name" id="edit_name" class="form-control form-control-lg bg-light border-0" style="font-size: 15px;" required />
+                        <small id="error-edit-name" class="text-danger d-none mt-2 fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Name cannot be empty.</small>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-dark">Update</button>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-soft px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark px-4" style="border-radius: 8px;">Update Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<script>
-    // Hàm mở Edit Modal và điền dữ liệu cũ vào form
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script> 
+    document.addEventListener("DOMContentLoaded", function() {
+        var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+        var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+
+        if (successMsg) {
+            Swal.fire({ icon: 'success', title: 'Success!', text: successMsg, showConfirmButton: false, timer: 1500, customClass: { popup: 'rounded-4' } });
+        }
+        if (errorMsg) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: errorMsg, confirmButtonColor: '#2b3445', customClass: { popup: 'rounded-4', confirmButton: 'rounded-3' } });
+        }
+
+        function validateProductType(e, inputId, catId, errorInpId, errorCatId) {
+            const nameInput = document.getElementById(inputId);
+            const catSelect = document.getElementById(catId);
+            const errorInp = document.getElementById(errorInpId);
+            const errorCat = document.getElementById(errorCatId);
+            let isValid = true;
+
+            [nameInput, catSelect].forEach(el => el.classList.remove('is-invalid'));
+            [errorInp, errorCat].forEach(el => el.classList.add('d-none'));
+
+            if (catSelect.value === "") {
+                catSelect.classList.add('is-invalid');
+                errorCat.classList.remove('d-none');
+                isValid = false;
+            }
+
+            if (nameInput.value.trim() === "") {
+                nameInput.classList.add('is-invalid');
+                errorInp.classList.remove('d-none');
+                isValid = false;
+            }
+
+            if (!isValid) e.preventDefault();
+        }
+
+        document.getElementById('createProductTypeForm')?.addEventListener('submit', function(e) {
+            validateProductType(e, 'create_name', 'create_categoryId', 'error-create-name', 'error-create-cat');
+        });
+
+        document.getElementById('editProductTypeForm')?.addEventListener('submit', function(e) {
+            validateProductType(e, 'edit_name', 'edit_categoryId', 'error-edit-name', 'error-edit-cat');
+        });
+
+        ['create_name', 'edit_name', 'create_categoryId', 'edit_categoryId'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const errId = id.includes('name') ? (id.includes('create') ? 'error-create-name' : 'error-edit-name')
+                                                 : (id.includes('create') ? 'error-create-cat' : 'error-edit-cat');
+                document.getElementById(errId)?.classList.add('d-none');
+            });
+        });
+    });
+
     function openEditModal(id, name, categoryId) {
         document.getElementById('edit_id').value = id;
         document.getElementById('edit_name').value = name;
-        document.getElementById('edit_categoryId').value = categoryId; // Tự chọn đúng Category cũ
-
-        // Fix lỗi backdrop nếu bấm nhiều lần
-        var myModalEl = document.getElementById('editModal');
-        var modal = bootstrap.Modal.getInstance(myModalEl);
-        if (!modal) {
-            modal = new bootstrap.Modal(myModalEl);
-        }
-        modal.show();
-    }
-</script>
-
-<script>
-    // --- XỬ LÝ THÔNG BÁO TỪ CONTROLLER ---
-    var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
-    var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
-
-    if (errorMsg) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Cannot Delete!',
-            text: errorMsg,
-            confirmButtonColor: '#000'
-        });
+        document.getElementById('edit_categoryId').value = categoryId;
+        new bootstrap.Modal(document.getElementById('editModal')).show();
     }
 
-    if (successMsg) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: successMsg,
-            confirmButtonColor: '#28a745'
-        });
-    }
-
-    // --- HÀM HỎI TRƯỚC KHI XÓA ---
     function deleteConfirm(id) {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You want to delete this Product Type?",
+            title: 'Delete Product Type?',
+            text: "This action cannot be undone.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes'
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Yes, delete it',
+            customClass: { popup: 'rounded-4', confirmButton: 'rounded-3 fw-bold', cancelButton: 'rounded-3 fw-bold' }
         }).then((result) => {
-            if (result.isConfirmed) {
-                // Chuyển hướng đến hàm Delete trong ProductTypesController
-                window.location.href = '/Admin/ProductTypes/Delete/' + id;
-            }
-        })
+            if (result.isConfirmed) window.location.href = '/Admin/ProductTypes/Delete/' + id;
+        });
     }
 </script>

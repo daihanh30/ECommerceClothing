@@ -1,21 +1,23 @@
 ﻿@model ECommerceClothing.Models.Order
 @{
     ViewData["Title"] = "Order Details #" + Model.Id;
-    Layout = "~/Areas/Admin/Views/Admin/_AdminLayout.cshtml"; // Nhớ check lại đường dẫn Layout này nhé
+    Layout = "~/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
 }
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid px-4 mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">
-                <i class="bi bi-arrow-left"></i> Back to list
+            <a asp-action="Index" class="text-decoration-none text-muted fw-bold mb-2 d-inline-block" style="font-size: 14px; transition: color 0.2s;">
+                <i class="bi bi-arrow-left me-1"></i> Back to Orders
             </a>
-            <h3 class="fw-bold mb-0 text-uppercase">Order #@Model.Id.ToString("D5")</h3>
+            <h3 class="fw-bold mb-0 text-uppercase" style="color: #2b3445;">Order #@Model.Id.ToString("D5")</h3>
         </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success py-2 mb-0 border-0 shadow-sm">
+            <div class="alert alert-success py-2 mb-0 border-0 shadow-sm" style="background-color: #d1fae5; color: #059669;">
                 <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
             </div>
         }
@@ -23,62 +25,70 @@
 
     <div class="row">
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-dark text-white py-3">
-                    <h6 class="mb-0 text-uppercase fw-bold">Shipping Information</h6>
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 text-uppercase fw-bold text-muted" style="letter-spacing: 0.5px;">Shipping Information</h6>
                 </div>
                 <div class="card-body">
-                    <p class="mb-2"><strong>Customer:</strong> @Model.FullName</p>
-                    <p class="mb-2"><strong>Phone:</strong> @Model.PhoneNumber</p>
-                    <p class="mb-2"><strong>Address:</strong> @Model.Address</p>
-                    <p class="mb-2"><strong>Note:</strong> @(string.IsNullOrEmpty(Model.Note) ? "None" : Model.Note)</p>
-                    <hr>
-                    <p class="mb-2"><strong>Order Date:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p class="mb-2"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
-                    <p class="mb-0 d-flex align-items-center">
-                        <strong class="me-2">Current Status:</strong>
-                        <span class="badge @GetBadgeClass(Model.Status) px-3 py-2 text-uppercase">@Model.Status</span>
-                    </p>
+                    <p class="mb-2 text-dark"><strong>Customer:</strong> <span class="fw-semibold">@Model.FullName</span></p>
+                    <p class="mb-2 text-dark"><strong>Phone:</strong> @Model.PhoneNumber</p>
+                    <p class="mb-2 text-dark"><strong>Address:</strong> @Model.Address</p>
+                    <p class="mb-2 text-dark"><strong>Note:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Note) ? "None" : Model.Note)</span></p>
+                    <hr class="text-muted opacity-25">
+                    <p class="mb-2 text-dark"><strong>Order Date:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-3 text-dark"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                    <div class="d-flex align-items-center">
+                        <strong class="me-3 text-dark">Current Status:</strong>
+                        <span class="status-badge @GetBadgeClass(Model.Status) text-uppercase">@Model.Status</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm border-0 bg-light">
-                <div class="card-body">
-                    <h6 class="fw-bold text-uppercase mb-3">Order Processing</h6>
-                    <form asp-action="UpdateStatus" method="post" class="d-grid gap-2">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold text-uppercase mb-0 text-muted" style="letter-spacing: 0.5px;">Order Processing</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form id="orderProcessingForm" asp-action="UpdateStatus" method="post" class="d-grid gap-3">
                         <input type="hidden" name="id" value="@Model.Id" />
 
-                        @if (Model.Status == "Pending")
+                        @if (Model.Status.ToUpper() == "PENDING" || Model.Status.ToUpper() == "UNPAID")
                         {
-                            <button type="submit" name="newStatus" value="Shipping" class="btn btn-info text-dark fw-bold">
-                                Confirm & Ship
-                            </button>
-                            <button type="submit" name="newStatus" value="Cancelled" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this order?');">
-                                Cancel Order
+                            @if (Model.Status.ToUpper() == "PENDING")
+                            {
+                                <button type="submit" name="newStatus" value="Shipping" class="btn btn-confirm btn-action">
+                                    <i class="bi bi-box-seam me-2"></i> Confirm & Ship
+                                </button>
+                            }
+
+                            <button type="button" class="btn btn-soft-danger btn-action"
+                            onclick="cancelOrder('@Model.Id', '@Model.OrderDate.ToString("yyyy-MM-ddTHH:mm:ss")')">
+                                <i class="bi bi-x-circle me-2"></i> Cancel Order
                             </button>
                         }
                         else if (Model.Status == "Paid")
                         {
-                            <button type="submit" name="newStatus" value="Shipping" class="btn btn-info text-dark fw-bold">
-                                Confirm & Ship (Paid via MoMo)
+                            <button type="submit" name="newStatus" value="Shipping" class="btn btn-confirm btn-action">
+                                <i class="bi bi-box-seam me-2"></i> Confirm & Ship
                             </button>
                         }
                         else if (Model.Status == "Shipping")
                         {
-                            <button type="submit" name="newStatus" value="Delivered" class="btn btn-success fw-bold">
-                                Complete (Delivered)
-                            </button>
-                            <button type="submit" name="newStatus" value="Cancelled" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this shipping order?');">
-                                Delivery Failed / Cancel
-                            </button>
+                            <button type="submit" name="newStatus" value="Delivered" class="btn btn-dark btn-action" style="background-color: #10b981; border: none;">
+                                <i class="bi bi-check2-circle me-2"></i> Complete (Delivered)
+                            </button> 
                         }
-                        else if (Model.Status == "Delivered")
+                        else if (Model.Status == "Shipping")
                         {
-                            <div class="alert alert-success mb-0 text-center">Order has been completed</div>
+                            <button type="submit" name="newStatus" value="Delivered" class="btn btn-confirm btn-action">
+                                <i class="bi bi-check2-circle me-2"></i> Complete (Delivered)
+                            </button>
                         }
                         else if (Model.Status == "Cancelled")
                         {
-                            <div class="alert alert-danger mb-0 text-center">Order has been cancelled</div>
+                            <div class="alert mb-0 text-center fw-bold border-0" style="background-color: #fee2e2; color: #dc2626; border-radius: 8px;">
+                                <i class="bi bi-x-circle-fill me-2"></i> Order Cancelled
+                            </div>
                         }
                     </form>
                 </div>
@@ -86,53 +96,62 @@
         </div>
 
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 text-uppercase fw-bold">Ordered Products</h6>
+                    <h6 class="mb-0 text-uppercase fw-bold text-muted" style="letter-spacing: 0.5px;">Ordered Products</h6>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table align-middle mb-0">
-                        <thead class="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th class="ps-4">Product</th>
-                                <th>Unit Price</th>
-                                <th class="text-center">Quantity</th>
-                                <th class="text-end pe-4">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.OrderDetails)
-                            {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="bg-light text-muted small text-uppercase">
                                 <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center py-2">
-                                            <img src="@(item.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
-                                                 class="rounded border" style="width: 50px; height: 65px; object-fit: cover;">
-                                            <div class="ms-3">
-                                                <div class="fw-bold text-dark">@item.Product.Name</div>
-                                                <div class="small text-muted">Size: @item.Size</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>@((item.Price * 1000).ToString("N0")) VND</td>
-                                    <td class="text-center">@item.Quantity</td>
-                                    <td class="text-end pe-4 fw-bold">@((item.Price * 1000 * item.Quantity).ToString("N0")) VND</td>
+                                    <th class="ps-4 py-3 border-0">Product</th>
+                                    <th class="border-0">Unit Price</th>
+                                    <th class="text-center border-0">Quantity</th>
+                                    <th class="text-end pe-4 border-0">Total</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center py-2">
+                                                <img src="@(item.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
+                                                     class="rounded border shadow-sm" style="width: 55px; height: 75px; object-fit: cover;">
+                                                <div class="ms-3">
+                                                    <div class="fw-bold text-dark" style="font-size: 15px;">@item.Product.Name</div>
+                                                    <div class="small text-muted mt-1">Size: <span class="badge bg-light text-dark border">@item.Size</span></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-secondary fw-semibold">@((item.Price * 1000).ToString("N0")) VND</td>
+                                        <td class="text-center fw-bold text-dark">@item.Quantity</td>
+                                        <td class="text-end pe-4 fw-bold text-dark">@((item.Price * 1000 * item.Quantity).ToString("N0")) VND</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-footer bg-white border-top py-3">
+                <div class="card-footer bg-white border-top p-4">
                     <div class="d-flex justify-content-end align-items-center">
-                        <div class="text-end">
-                            <div class="text-muted small mb-1">Shipping Fee: @Model.ShippingFee.ToString("N0") VND</div>
+                        <div class="text-end" style="min-width: 250px;">
+                            <div class="d-flex justify-content-between text-muted mb-2">
+                                <span>Shipping Fee:</span>
+                                <span class="fw-semibold">@Model.ShippingFee.ToString("N0") VND</span>
+                            </div>
                             @if (Model.DiscountAmount > 0)
                             {
-                                <div class="text-success small mb-1">Discount: -@Model.DiscountAmount.ToString("N0") VND</div>
+                                <div class="d-flex justify-content-between text-success mb-2">
+                                    <span>Discount:</span>
+                                    <span class="fw-bold">-@Model.DiscountAmount.ToString("N0") VND</span>
+                                </div>
                             }
-                            <div class="fs-5 mt-2">
-                                <span class="fw-bold me-2">TOTAL:</span>
-                                <span class="fw-bold text-danger">@Model.TotalAmount.ToString("N0") VND</span>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="fw-bold text-uppercase text-muted" style="letter-spacing: 1px;">Total</span>
+                                <span class="fs-4 fw-bold text-dark">@Model.TotalAmount.ToString("N0") VND</span>
                             </div>
                         </div>
                     </div>
@@ -142,17 +161,84 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        function cancelOrder(orderId, orderDateString) {
+            Swal.fire({
+                title: `Cancel Order #${orderId.padStart(5, '0')}`,
+                text: "Please select the reason for canceling your order:",
+                icon: 'warning',
+                input: 'select',
+                inputOptions: {
+                    'spam': 'Invalid shipping information (Spam/Fake order)',
+                    'payment_failed': 'Customer did not complete payment (Momo)',
+                },
+                inputPlaceholder: 'Choose a reason',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626', 
+                cancelButtonColor: '#6b7280', 
+                confirmButtonText: 'Cancel Order',
+                cancelButtonText: 'Close',
+                customClass: {
+                    popup: 'rounded-4' 
+                },
+                inputValidator: (value) => {
+                    return new Promise((resolve) => {
+                        if (!value) {
+                            resolve('You must choose a reason to cancel your order!');
+                        }
+                        // k cho phép hủy đơn nếu chưa được 24h
+                        else if (value === 'payment_failed') {
+                            const orderDate = new Date(orderDateString);
+                            const now = new Date();
+                            const diffHours = Math.abs(now - orderDate) / 3600000;
+
+                            if (diffHours < 24) {
+                                resolve('Less than 24 hours have passed since I canceled this order due to payment issues!');
+                            } else {
+                                resolve();
+                            }
+                        }
+                        else {
+                            resolve();
+                        }
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('orderProcessingForm');
+
+                    const statusInput = document.createElement('input');
+                    statusInput.type = 'hidden';
+                    statusInput.name = 'newStatus';
+                    statusInput.value = 'Cancelled';
+                    form.appendChild(statusInput);
+
+                    const reasonInput = document.createElement('input');
+                    reasonInput.type = 'hidden';
+                    reasonInput.name = 'cancelReason';
+                    reasonInput.value = result.value;
+                    form.appendChild(reasonInput);
+
+                    form.submit();
+                }
+            });
+        }
+    </script>
+}
+
 @functions {
     string GetBadgeClass(string status)
     {
-        return status switch
+        return status.ToUpper() switch
         {
-            "Pending" => "bg-warning text-dark",
-            "Paid" => "bg-primary text-white",
-            "Shipping" => "bg-info text-dark",
-            "Delivered" => "bg-success text-white",
-            "Cancelled" => "bg-danger text-white",
-            _ => "bg-secondary text-white"
+            "PENDING" => "status-pending",
+            "UNPAID" => "status-default",
+            "PAID" => "status-paid",
+            "SHIPPING" => "status-shipping",
+            "DELIVERED" => "status-delivered",
+            "CANCELLED" => "status-cancelled",
+            _ => "status-default"
         };
     }
 }

@@ -11,7 +11,6 @@
             <a href="/" class="btn btn-dark px-4 py-2 rounded-pill">Continue shopping</a>
             @if (ViewBag.OrderId != null)
             {
-                @* Sửa href từ /Orders/Details thành /Profile/OrderDetails *@
                 <a href="/Profile/OrderDetails/@ViewBag.OrderId" class="btn btn-outline-success px-4 py-2 rounded-pill ms-2">
                     <i class="bi bi-eye me-1"></i> View order #@ViewBag.OrderId
                 </a>

@@ -1,8 +1,7 @@
 ﻿@model IEnumerable<ECommerceClothing.Models.Order>
 @{
     ViewData["Title"] = "Order History";
-    var currentStatus = ViewBag.CurrentStatus as string;
-    // Lấy danh sách ID đơn đã đánh giá ra ngay từ đầu trang cho code nó sạch
+    var currentStatus = ViewBag.CurrentStatus as string; 
     var reviewedOrders = ViewBag.ReviewedOrders as List<int> ?? new List<int>();
 }
 
@@ -16,14 +15,12 @@
             </a>
         </div>
         <h4 class="fw-bold text-uppercase mb-0" style="letter-spacing: 2px;">Order History</h4>
-
-        @* Thông báo thành công *@
+         
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show rounded-0 mt-3 mb-0" role="alert" id="successAlert">
                 <i class="fa-solid fa-circle-check me-2"></i>
-                <strong>Success!</strong> @TempData["SuccessMessage"]
-                @* Nút Close của Bootstrap 5 mặc định sẽ nằm bên phải nếu có class alert-dismissible *@
+                <strong>Success!</strong> @TempData["SuccessMessage"] 
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
@@ -97,9 +94,10 @@
                                 </div>
                             </div>
 
-                            @if (remainingItems.Any())
-                            {
-                                <div class="collapse" id="collapseOrder_@order.Id">
+                            <div class="collapse" id="collapseOrder_@order.Id">
+
+                                @if (remainingItems.Any())
+                                {
                                     @foreach (var item in remainingItems)
                                     {
                                         <hr class="text-muted opacity-25 my-3">
@@ -116,29 +114,47 @@
                                             </div>
                                         </div>
                                     }
-                                </div>
+                                }
 
-                                <div class="text-center mt-3 border-top pt-2">
-                                    <a data-bs-toggle="collapse" href="#collapseOrder_@order.Id" role="button" aria-expanded="false"
-                                       class="text-decoration-none text-muted small text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem;"
-                                       onclick="toggleCollapseText(this, @remainingItems.Count)">
-                                        <span class="toggle-text">View @remainingItems.Count more items</span>
-                                        <i class="bi bi-chevron-down toggle-icon ms-1"></i>
-                                    </a>
+                                <div class="pt-3 mt-3 border-top" style="border-top-style: dashed !important;">
+                                    <div class="d-flex justify-content-between small text-muted mb-2">
+                                        <span class="text-uppercase" style="letter-spacing: 0.5px;">Subtotal</span>
+                                        <span class="fw-semibold">@((order.TotalAmount - order.ShippingFee + order.DiscountAmount).ToString("N0")) VND</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted mb-2">
+                                        <span class="text-uppercase" style="letter-spacing: 0.5px;">Shipping Fee</span>
+                                        <span class="fw-semibold">@order.ShippingFee.ToString("N0") VND</span>
+                                    </div>
+                                    @if (order.DiscountAmount > 0)
+                                    {
+                                        <div class="d-flex justify-content-between small text-danger mb-0">
+                                            <span class="text-uppercase" style="letter-spacing: 0.5px;">Discount</span>
+                                            <span class="fw-bold">- @order.DiscountAmount.ToString("N0") VND</span>
+                                        </div>
+                                    }
                                 </div>
-                            }
+                            </div>
+                            <div class="text-center mt-3 border-top pt-2">
+                                <a data-bs-toggle="collapse" href="#collapseOrder_@order.Id" role="button" aria-expanded="false"
+                                   class="text-decoration-none text-muted small text-uppercase fw-bold"
+                                   style="letter-spacing: 1px; font-size: 0.75rem; transition: color 0.2s;"
+                                   onclick="toggleCollapseText(this)"
+                                   onmouseover="this.style.color='#000'" onmouseout="this.style.color='#6c757d'">
+                                    <span class="toggle-text">See more</span>
+                                    <i class="fa-solid fa-chevron-down toggle-icon ms-1"></i>
+                                </a>
+                            </div>
                         }
                     </div>
 
-                    <div class="card-footer bg-light border-top px-4 py-3 d-flex justify-content-between align-items-center">
-                        <div class="text-end w-100 d-flex justify-content-between align-items-center">
-                            <div>
+                    <div class="card-footer bg-light border-top px-4 py-3"> 
+                        <div class="w-100 d-flex justify-content-between align-items-center">
+                            <div class="text-start">
                                 <span class="small text-muted text-uppercase me-2" style="font-size: 0.75rem;">Total Amount:</span>
                                 <span class="fs-5 fw-bold text-danger">@order.TotalAmount.ToString("N0") VND</span>
                             </div>
 
                             <div class="d-flex gap-2">
-                                @* 1. Nút Review (Nếu Delivered) *@
                                 @if (order.Status == "Delivered")
                                 {
                                     var firstItem = order.OrderDetails.FirstOrDefault();
@@ -164,18 +180,15 @@
                                     }
                                 }
 
-                                @* 👉 2. THÊM MỚI: NÚT PAY NOW (Chỉ hiện khi chưa thanh toán - Unpaid) *@
                                 @if (order.Status == "Unpaid")
                                 {
-                                    // Gọi thẳng lại cái trang PaymentMock (MoMo) của ní trong CheckoutController
-                                    <a href="/Checkout/PaymentMock?orderId=@order.Id&amount=@order.TotalAmount"
+                                    <a href="/Checkout/RetryPayment?orderId=@order.Id"
                                        class="btn text-white rounded-0 text-uppercase fw-bold py-2 px-4"
                                        style="font-size: 0.75rem; letter-spacing: 1px; background-color: #A50064;">
                                         Pay Now
                                     </a>
                                 }
-
-                                @* 👉 3. CẬP NHẬT: NÚT CANCEL (Hiện khi Pending hoặc Unpaid) *@
+                                 
                                 @if (order.Status == "Pending" || order.Status == "Unpaid")
                                 {
                                     <button type="button" class="btn btn-outline-danger rounded-0 text-uppercase fw-bold py-2 px-4"
@@ -184,8 +197,7 @@
                                         Cancel Order
                                     </button>
                                 }
-
-                                @* 4. NÚT BUY AGAIN (Hiện khi Cancelled) *@
+                                 
                                 @if (order.Status == "Cancelled")
                                 {
                                     <button type="button" class="btn btn-dark rounded-0 text-uppercase fw-bold py-2 px-4"
@@ -194,8 +206,7 @@
                                         Buy Again
                                     </button>
                                 }
-
-                                @* 5. NÚT DETAILS (Luôn hiện) *@
+                                 
                                 <a asp-action="OrderDetails" asp-route-id="@order.Id"
                                    class="btn btn-outline-dark rounded-0 text-uppercase fw-bold py-2 px-4"
                                    style="font-size: 0.75rem; letter-spacing: 1px;">
@@ -226,9 +237,9 @@
     {
         return status switch
         {
-            "Unpaid" => "background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;", // Xám xám chờ đợi
-            "Pending" => "background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;", // Vàng cam
-            "Paid" => "background-color: #cce5ff; color: #004085; border: 1px solid #b8daff;", // Xanh dương đã lụm tiền
+            "Unpaid" => "background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;", 
+            "Pending" => "background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;",
+            "Paid" => "background-color: #cce5ff; color: #004085; border: 1px solid #b8daff;",
             "Shipping" => "background-color: #cce5ff; color: #004085; border: 1px solid #b8daff;",
             "Delivered" => "background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;",
             "Cancelled" => "background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;",
@@ -237,7 +248,7 @@
     }
 }
 
-@* ================= BẮT ĐẦU KHU VỰC MODAL ĐÁNH GIÁ (THÊM MỚI) ================= *@
+//thêm đánh giá mới
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">
@@ -298,7 +309,7 @@
     </div>
 </div>
 
-@* ================= MODAL XEM LẠI ĐÁNH GIÁ (CHỈ ĐỌC) ================= *@
+// xem lại đánh giá
 <div class="modal fade" id="viewReviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">
@@ -335,7 +346,7 @@
     </div>
 </div>
 
-@* ================= MODAL HỦY ĐƠN HÀNG ================= *@
+// Cancel order
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">
@@ -396,24 +407,40 @@
             });
         });
 
-        // Function to handle toggle text and icon (English version)
-        function toggleCollapseText(btn, count) {
-            // Wait a tiny bit for Bootstrap to update the 'aria-expanded' attribute
+        function toggleCollapseText(btn) {
             setTimeout(() => {
                 let span = btn.querySelector('.toggle-text');
                 let icon = btn.querySelector('.toggle-icon');
 
-                // Check if the content is currently expanded
                 let isExpanded = btn.getAttribute('aria-expanded') === 'true';
 
                 if (isExpanded) {
                     span.innerText = 'Collapse';
-                    icon.classList.remove('bi-chevron-down');
-                    icon.classList.add('bi-chevron-up');
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
                 } else {
-                    span.innerText = `View ${count} more items`;
-                    icon.classList.remove('bi-chevron-up');
-                    icon.classList.add('bi-chevron-down');
+                    span.innerText = 'See more';
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            }, 50);
+        }
+
+        // xem thêm thu gọn
+        function toggleBillText(btn) {
+            setTimeout(() => {
+                let span = btn.querySelector('.bill-toggle-text');
+                let icon = btn.querySelector('.bill-toggle-icon');
+                let isExpanded = btn.getAttribute('aria-expanded') === 'true';
+
+                if (isExpanded) {
+                    span.innerText = 'Collapse';
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    span.innerText = 'See more';
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
                 }
             }, 50);
         }
@@ -489,7 +516,7 @@
         function openCancelModal(orderId) {
             document.getElementById('cancelOrderIdDisplay').innerText = String(orderId).padStart(5, '0');
             document.getElementById('cancelOrderIdValue').value = orderId;
-            document.getElementById('cancelReasonSelect').value = ""; // Reset form
+            document.getElementById('cancelReasonSelect').value = "";  
 
             var myModal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
             myModal.show();
@@ -532,11 +559,11 @@
                     if (res.success) {
                         window.location.href = '/Cart';
                     } else {
-                        alert("Lỗi: " + res.msg);
+                        alert("Error: " + res.msg);
                     }
                 },
                 error: function () {
-                    alert("Lỗi kết nối tới Server.");
+                    alert("Server connection error.");
                 }
             });
         }

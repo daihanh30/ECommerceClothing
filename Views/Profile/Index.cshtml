@@ -43,19 +43,26 @@
         <div class="profile-content card border-0 shadow-sm p-4">
             <div id="section-personal" class="profile-tab-content">
                 <h4 class="fw-bold mb-4">My Profile</h4>
-                <form asp-action="UpdateInfo" method="post" class="form-custom">
+                <form asp-action="UpdateInfo" method="post" class="form-custom" id="updateInfoForm" novalidate>
                     <div class="mb-3">
-                        <label class="fw-bold small text-muted text-uppercase">Full Name</label>
-                        <input type="text" class="form-control" name="fullName" value="@Model.FullName" placeholder="Enter your name">
+                        <label class="fw-bold small text-muted text-uppercase">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="fullName" id="fullName" value="@Model.FullName" placeholder="Enter your name"
+                               oninput="this.value = this.value.replace(/[0-9]/g, ''); hideError('nameError')">
+                        <span id="nameError" class="text-danger small fw-bold mt-1" style="display: none; font-size: 12px;">Please enter your valid full name.</span>
                     </div>
+
                     <div class="mb-3">
                         <label class="fw-bold small text-muted text-uppercase">Email Address</label>
                         <input type="email" class="form-control bg-light" value="@Model.Email" readonly>
                     </div>
+
                     <div class="mb-3">
-                        <label class="fw-bold small text-muted text-uppercase">Phone Number</label>
-                        <input type="text" class="form-control" name="phoneNumber" value="@Model.PhoneNumber" placeholder="Enter your phone">
+                        <label class="fw-bold small text-muted text-uppercase">Phone Number <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="phoneNumber" id="phoneNumber" value="@Model.PhoneNumber" placeholder="Enter your phone"
+                               maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); hideError('phoneError')">
+                        <span id="phoneError" class="text-danger small fw-bold mt-1" style="display: none; font-size: 12px;">Phone number must be between 10 and 11 digits.</span>
                     </div>
+
                     <button type="submit" class="btn btn-dark w-100 py-2 mt-3">Save Changes</button>
                 </form>
             </div>
@@ -74,29 +81,42 @@
 
             <div id="section-password" class="profile-tab-content d-none">
                 <h4 class="fw-bold mb-4">Change Password</h4>
-                <form id="changePasswordForm" style="max-width: 450px;">
+                <form id="changePasswordForm" style="max-width: 600px;" onsubmit="event.preventDefault(); updatePassword();">
+
                     <div class="mb-3">
                         <label class="fw-bold small text-muted text-uppercase">Current Password</label>
                         <div class="password-toggle-wrapper">
-                            <input type="password" id="currentPwd" class="form-control" placeholder="••••••••">
+                            <input type="password" id="currentPwd" class="form-control" placeholder="Please enter your old password">
                             <i class="fa-regular fa-eye-slash password-toggle-icon" id="currentPwd_toggle"></i>
                         </div>
+                        <small id="err-current" class="text-danger d-none mt-1 fw-bold">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i> <span class="err-text"></span>
+                        </small>
                     </div>
+
                     <div class="mb-3">
                         <label class="fw-bold small text-muted text-uppercase">New Password</label>
                         <div class="password-toggle-wrapper">
-                            <input type="password" id="newPwd" class="form-control" placeholder="••••••••">
+                            <input type="password" id="newPwd" class="form-control" placeholder="Please enter your new password.">
                             <i class="fa-regular fa-eye-slash password-toggle-icon" id="newPwd_toggle"></i>
                         </div>
+                        <small id="err-new" class="text-danger d-none mt-1 fw-bold">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i> <span class="err-text"></span>
+                        </small>
                     </div>
+
                     <div class="mb-4">
                         <label class="fw-bold small text-muted text-uppercase">Confirm New Password</label>
                         <div class="password-toggle-wrapper">
-                            <input type="password" id="confirmPwd" class="form-control" placeholder="••••••••">
+                            <input type="password" id="confirmPwd" class="form-control" placeholder="Please confirm your password.">
                             <i class="fa-regular fa-eye-slash password-toggle-icon" id="confirmPwd_toggle"></i>
                         </div>
+                        <small id="err-confirm" class="text-danger d-none mt-1 fw-bold">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i> <span class="err-text"></span>
+                        </small>
                     </div>
-                    <button type="button" onclick="updatePassword()" class="btn btn-dark w-100 py-2">Update Password</button>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2">Update Password</button>
                 </form>
             </div>
         </div>
@@ -111,40 +131,55 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="profileNewAddressForm">
-                    <input type="text" id="p_newFullName" class="form-control mb-3" placeholder="Receiver's Full Name">
-                    <input type="text" id="p_newPhone" class="form-control mb-3" placeholder="Phone Number">
+                <form id="profileNewAddressForm" onsubmit="saveAddressFromProfile(event)" novalidate>
+
+                    <div class="mb-3">
+                        <input type="text" id="p_newFullName" class="form-control" placeholder="Full Name"
+                               oninput="this.value = this.value.replace(/[0-9]/g, ''); hideError('addrNameError')">
+                        <span id="addrNameError" class="text-danger small fw-bold mt-1" style="display: none; font-size: 12px;">Please enter a valid full name.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="text" id="p_newPhone" class="form-control" placeholder="Phone Number"
+                               maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); hideError('addrPhoneError')">
+                        <span id="addrPhoneError" class="text-danger small fw-bold mt-1" style="display: none; font-size: 12px;">Phone number must be 10-11 digits.</span>
+                    </div>
 
                     <div class="row">
                         <div class="col-12 mb-3">
-                            <select id="p_newProvince" class="form-select shadow-none">
+                            <select id="p_newProvince" class="form-select shadow-none" onchange="hideError('addrLocationError')">
                                 <option value="" selected disabled>Select Province/City</option>
                             </select>
                         </div>
                         <div class="col-12 mb-3">
-                            <select id="p_newDistrict" class="form-select shadow-none" disabled>
+                            <select id="p_newDistrict" class="form-select shadow-none" disabled onchange="hideError('addrLocationError')">
                                 <option value="" selected disabled>Select District</option>
                             </select>
                         </div>
                         <div class="col-12 mb-3">
-                            <select id="p_newWard" class="form-select shadow-none" disabled>
+                            <select id="p_newWard" class="form-select shadow-none" disabled onchange="hideError('addrLocationError')">
                                 <option value="" selected disabled>Select Ward</option>
                             </select>
+                            <span id="addrLocationError" class="text-danger small fw-bold mt-1" style="display: none; font-size: 12px;">Please select full location (Province, District, Ward).</span>
                         </div>
+
                         <div class="col-12 mb-3">
-                            <input type="text" id="p_newAddressDetail" class="form-control shadow-none" placeholder="House number, street name...">
+                            <input type="text" id="p_newAddressDetail" class="form-control shadow-none" placeholder="House number, street name..."
+                                   oninput="hideError('addrDetailError')">
+                            <span id="addrDetailError" class="text-danger small fw-bold mt-1 ps-2" style="display: none; font-size: 12px;">Please enter a valid specific address.</span>
                         </div>
                     </div>
 
-                    <div class="form-check form-switch p-3 border rounded bg-light d-flex align-items-center justify-content-between">
+                    <div class="form-check form-switch p-3 border rounded bg-light d-flex align-items-center justify-content-between mb-4 mt-2">
                         <label class="form-check-label mb-0 fw-bold text-muted" for="p_newIsDefault">Set as default address</label>
                         <input class="form-check-input m-0" type="checkbox" role="switch" id="p_newIsDefault">
                     </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark px-4 fw-bold">Save Address</button>
+                    </div>
                 </form>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-dark px-4 fw-bold" onclick="saveAddressFromProfile()">Save Address</button>
             </div>
         </div>
     </div>
@@ -152,7 +187,7 @@
 
 @section Scripts {
     <script>
-        // --- 1. CẤU HÌNH TOAST (THÔNG BÁO GÓC PHẢI) ---
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -164,9 +199,37 @@
             iconColor: '#fff'
         });
 
-        let provincesData = [];
+        @if (TempData["Success"] != null || TempData["SuccessMessage"] != null)
+        {
+                    <text>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Saved successfully!'
+                        });
+                    });
+                    </text>
+        }
 
-        // GOM CHUNG TẤT CẢ VÀO 1 SỰ KIỆN DOMContentLoaded DUY NHẤT
+        // báo lỗi
+        @if (TempData["Error"] != null)
+        {
+                    <text>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        Toast.fire({
+                            icon: 'error',
+                            title: '@TempData["Error"]'
+                        });
+                    });
+                    </text>
+        }
+         
+        function hideError(errorId) {
+            const errSpan = document.getElementById(errorId);
+            if (errSpan) errSpan.style.display = 'none';
+        }
+
+        
         document.addEventListener("DOMContentLoaded", function() {
             initProvinceAPI();
             loadProfileAddresses();
@@ -187,7 +250,36 @@
                     }
                 });
             });
-        });
+
+            //update infomation
+            const updateForm = document.getElementById('updateInfoForm');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function (e) {
+                    let isValid = true;
+                     
+                    const nameInput = document.getElementById('fullName');
+                    const nameError = document.getElementById('nameError');
+                    if (nameInput && nameInput.value.trim() === '') {
+                        if (nameError) nameError.style.display = 'block';
+                        isValid = false;
+                    }
+                     
+                    const phoneInput = document.getElementById('phoneNumber');
+                    const phoneError = document.getElementById('phoneError');
+                    if (phoneInput) {
+                        const len = phoneInput.value.trim().length;
+                        if (len < 10 || len > 11) {
+                            if (phoneError) phoneError.style.display = 'block';
+                            isValid = false;
+                        }
+                    }
+                     
+                    if (!isValid) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        }); 
 
         function showTab(tabName) {
             document.querySelectorAll('.profile-tab-content').forEach(el => el.classList.add('d-none'));
@@ -254,17 +346,50 @@
                 wardSelect.disabled = false;
             });
         }
+         
+        function saveAddressFromProfile(e) {
+            e.preventDefault(); 
 
-        // --- 2. THAY THẾ ALERT BẰNG TOAST KHI LƯU ĐỊA CHỈ ---
-        function saveAddressFromProfile() {
-            const detail = document.getElementById('p_newAddressDetail').value;
-            const ward = document.getElementById('p_newWard').options[document.getElementById('p_newWard').selectedIndex].text;
-            const dist = document.getElementById('p_newDistrict').options[document.getElementById('p_newDistrict').selectedIndex].text;
-            const prov = document.getElementById('p_newProvince').options[document.getElementById('p_newProvince').selectedIndex].text;
+            const form = document.getElementById('profileNewAddressForm');
+            let isValid = true;
+             
+            const nameInput = document.getElementById('p_newFullName').value;
+            if (nameInput.trim() === '') {
+                document.getElementById('addrNameError').style.display = 'block';
+                isValid = false;
+            }
+             
+            const phoneInput = document.getElementById('p_newPhone').value;
+            if (phoneInput.trim().length < 10 || phoneInput.trim().length > 11) {
+                document.getElementById('addrPhoneError').style.display = 'block';
+                isValid = false;
+            }
+             
+            const detailInput = document.getElementById('p_newAddressDetail').value;
+            if (detailInput.trim() === '') {
+                document.getElementById('addrDetailError').style.display = 'block';
+                isValid = false;
+            }
+             
+            const provSelect = document.getElementById('p_newProvince');
+            const distSelect = document.getElementById('p_newDistrict');
+            const wardSelect = document.getElementById('p_newWard');
+
+            if (!provSelect.value || !distSelect.value || !wardSelect.value) {
+                document.getElementById('addrLocationError').style.display = 'block';
+                isValid = false;
+            }
+             
+            if (!isValid) return;
+             
+            const detail = detailInput.trim();
+            const ward = wardSelect.options[wardSelect.selectedIndex].text;
+            const dist = distSelect.options[distSelect.selectedIndex].text;
+            const prov = provSelect.options[provSelect.selectedIndex].text;
 
             const payload = {
-                FullName: document.getElementById('p_newFullName').value,
-                PhoneNumber: document.getElementById('p_newPhone').value,
+                FullName: nameInput.trim(),
+                PhoneNumber: phoneInput.trim(),
                 Address: `${detail}, ${ward}, ${dist}, ${prov}`,
                 IsDefault: document.getElementById('p_newIsDefault').checked
             };
@@ -277,9 +402,14 @@
                 if(res.success) {
                     bootstrap.Modal.getInstance(document.getElementById('profileAddAddressModal')).hide();
                     loadProfileAddresses();
+
+                    form.reset();
+                    document.getElementById('p_newDistrict').disabled = true;
+                    document.getElementById('p_newWard').disabled = true;
+
                     Toast.fire({ icon: 'success', title: 'New address added successfully!' });
                 } else {
-                    Toast.fire({ icon: 'error', title: 'Failed to add address!' });
+                    Toast.fire({ icon: 'error', title: 'Failed to add address: ' + (res.msg || '') });
                 }
             });
         }
@@ -313,27 +443,48 @@
             });
         }
 
-        // --- 3. ĐỔI PASSWORD BẰNG AJAX ---
+        //ĐỔI PASSWORD BẰNG AJAX  
+        function showInputError(fieldId, message) {
+            const errSpan = document.getElementById('err-' + fieldId);
+            const inputEl = document.getElementById(fieldId + 'Pwd');
+
+            if(errSpan && inputEl) {
+                 errSpan.querySelector('.err-text').innerText = message;
+                 errSpan.classList.remove('d-none');
+                 inputEl.classList.add('is-invalid');
+            }
+        }
+
+        function clearAllErrors() {
+            document.querySelectorAll('#changePasswordForm .text-danger').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('#changePasswordForm .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        }
+
+        // HÀM XỬ LÝ ĐỔI PASSWORD
         function updatePassword() {
             const current = document.getElementById('currentPwd').value;
             const newPass = document.getElementById('newPwd').value;
             const confirm = document.getElementById('confirmPwd').value;
 
-            if (!current || !newPass || !confirm) {
-                Toast.fire({ icon: 'warning', title: 'Please fill in all the information!' });
-                return;
-            }
+            clearAllErrors();
+            let isValid = true;
+
+            if (!current) { showInputError('current', 'Please enter your current password.'); isValid = false; }
+            if (!newPass) { showInputError('new', 'Please enter a new password.'); isValid = false; }
+            if (!confirm) { showInputError('confirm', 'Please confirm your new password.'); isValid = false; }
+
+            if (!isValid) return;
+             
             if (newPass !== confirm) {
-                // ĐÃ FIX LỖI DẤU NHÁY ĐƠN Ở ĐÂY 👇
-                Toast.fire({ icon: 'warning', title: "The verification password doesn't match!" });
+                showInputError('confirm', 'Passwords do not match. Please try again.');
+                document.getElementById('newPwd').classList.add('is-invalid');  
                 return;
             }
 
+            // GỬI LÊN BACKEND C# KIỂM TRA MẬT KHẨU CŨ
             fetch('/Profile/ChangePasswordJson', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
                 body: new URLSearchParams({
                     currentPassword: current,
                     newPassword: newPass,
@@ -342,17 +493,22 @@
             })
             .then(res => res.json())
             .then(res => {
-                if (res.success) {
-                    Toast.fire({ icon: 'success', title: res.msg });
+                if (res.success) { 
+                    Toast.fire({ icon: 'success', title: 'Password updated successfully!' });
                     document.getElementById('changePasswordForm').reset();
-                    // Optional: Reset lại các icon về mắt nhắm
+                     
                     document.querySelectorAll('.password-toggle-icon').forEach(icon => {
                         icon.classList.remove('fa-eye');
                         icon.classList.add('fa-eye-slash');
                         icon.previousElementSibling.type = 'password';
                     });
                 } else {
-                    Toast.fire({ icon: 'error', title: res.msg });
+                    //BẮT LỖI TỪ BACKEND 
+                    if (res.field) {
+                        showInputError(res.field, res.msg);
+                    } else { 
+                        Toast.fire({ icon: 'error', title: res.msg });
+                    }
                 }
             })
             .catch(err => {

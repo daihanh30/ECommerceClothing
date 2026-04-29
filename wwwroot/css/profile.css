@@ -1,18 +1,15 @@
-﻿/* wwwroot/css/profile.css */
-
-/* Khung bao ngoài cùng: Giới hạn chiều rộng, canh giữa, đổ bóng */
+﻿ 
 .profile-container {
-    max-width: 900px; /* Giới hạn độ rộng như design */
-    margin: 50px auto; /* Canh giữa màn hình */
+    max-width: 900px; 
+    margin: 50px auto;  
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.08); /* Đổ bóng nhẹ cho đẹp */
-    display: flex; /* Chia cột trái phải */
+    box-shadow: 0 0 20px rgba(0,0,0,0.08);  
+    display: flex;  
     overflow: hidden;
     min-height: 500px;
 }
-
-/* Cột trái: Sidebar */
+ 
 .profile-sidebar {
     width: 280px;
     background: #fff;
@@ -22,10 +19,9 @@
     flex-direction: column;
     align-items: center;
 }
-
-/* Cột phải: Nội dung */
+ 
 .profile-content {
-    flex: 1; /* Chiếm hết phần còn lại */
+    flex: 1; 
     padding: 50px;
 }
 
@@ -89,3 +85,8 @@
         border-color: #000;
         box-shadow: none;
     }
+
+.password-toggle-wrapper .is-invalid {
+    background-image: none !important;
+    padding-right: 2.5rem !important; 
+}

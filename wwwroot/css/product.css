@@ -1,7 +1,4 @@
-﻿
-/*/* ================= PRODUCT CARD (STYLE HADES) ================= */
-
-/* 1. Tổng thể Card */
+﻿ 
 .product-card {
     border: none;
     background: transparent;
@@ -9,67 +6,57 @@
     margin-bottom: 30px;
     transition: all 0.3s ease;
 }
-
-/* 2. Khung ảnh */
+ 
 .product-image-container {
     position: relative;
     width: 100%;
-    /* Mẹo: Dùng padding-top để tạo tỉ lệ khung hình (ví dụ 4:5 hoặc 1:1) */
-    /* Thay vì set height cố định, cách này giúp responsive tốt hơn */
-    padding-top: 125%; /* Tỉ lệ khung ảnh dọc (giống ảnh mẫu Hades) */
+    padding-top: 125%;
     background-color: #f9f9f9;
     overflow: hidden;
 }
-
-/* 3. Ảnh sản phẩm */
+ 
 .product-img {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Hoặc 'contain' nếu muốn thấy hết viền ảnh */
-    transition: transform 0.6s ease;
-    /* MẸO: Xóa nền trắng (chỉ chạy tốt nếu ảnh nền trắng & web nền trắng) */
+    object-fit: cover;  
+    transition: transform 0.6s ease; 
     mix-blend-mode: multiply;
 }
-
-/* Zoom ảnh khi di chuột */
+ 
 .product-card:hover .product-img {
     transform: scale(1.08);
 }
-
-/* 4. Lớp phủ chứa 2 nút (Overlay) */
+ 
 .product-actions-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    display: flex; /* Xếp 2 nút nằm ngang */
-    align-items: stretch; /* Kéo dãn chiều cao bằng nhau */
-    /* Hiệu ứng trượt từ dưới lên */
+    display: flex;  
+    align-items: stretch;  
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 2;
 }
-
-/* Khi hover vào card thì trượt lên */
+ 
 .product-card:hover .product-actions-overlay {
     transform: translateY(0);
 }
-
-/* 5. Style Nút bấm (Fix lỗi thẻ A đổi màu) */
+ 
 .btn-hades {
     flex: 1;
     background-color: #1a1a1a;
-    color: #fff !important; /* QUAN TRỌNG: Ép chữ luôn màu trắng */
+    color: #fff !important; 
     border: none;
     padding: 12px 5px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     text-align: center;
-    text-decoration: none !important; /* Bỏ gạch chân khi hover */
+    text-decoration: none !important; 
     white-space: nowrap;
     cursor: pointer;
     transition: background 0.2s ease;
@@ -77,28 +64,23 @@
     justify-content: center;
     align-items: center;
 }
-
-    /* Xử lý khi di chuột vào */
+ 
     .btn-hades:hover {
-        background-color: #000; /* Nền đen đậm hơn */
-        color: #fff !important; /* Ép chữ vẫn màu trắng, không cho đổi xanh */
+        background-color: #000;  
+        color: #fff !important;  
     }
-
-/* Đường kẻ giữa 2 nút */
+     
 .separator {
     width: 1px;
     background-color: rgba(255, 255, 255, 0.2);
 }
-
-
-/* 6. Thông tin sản phẩm bên dưới */
+  
 
 .product-info {
-    padding-top: 5px; /* <--- SỬA CHỖ NÀY: Giảm từ 10px xuống 5px cho gần ảnh hơn */
+    padding-top: 5px;  
     text-align: left !important;
 }
-
-/* Các phần bên dưới giữ nguyên y hệt để khoảng cách Tên - Giá không đổi */
+ 
 .product-name {
     display: block;
     color: #000 !important;
@@ -106,30 +88,27 @@
     font-weight: 700;
     text-transform: uppercase;
     font-size: 14px;
-    margin-bottom: 2px; /* Giữ nguyên khoảng cách này */
+    margin-bottom: 2px;  
     transition: opacity 0.2s;
 }
-
-/* ================= PHÂN TRANG STYLE ================= */
+ 
 .pagination-container {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 40px;
-    gap: 20px; /* Khoảng cách giữa mũi tên và số */
+    gap: 20px; 
     font-family: sans-serif;
 }
-
-/* Khu vực chứa các số */
+ 
 .page-numbers {
     display: flex;
-    gap: 15px; /* Khoảng cách giữa các số 1 2 3 */
+    gap: 15px; 
 }
-
-/* Style cho số trang */
+ 
 .page-link {
     text-decoration: none;
-    color: #999; /* Màu xám cho trang chưa chọn */
+    color: #999;  
     font-size: 16px;
     font-weight: 500;
     transition: color 0.2s;
@@ -139,14 +118,13 @@
         color: #000;
     }
 
-    /* Style cho số trang ĐANG CHỌN (Active) */
+    
     .page-link.active {
-        color: #000; /* Màu đen đậm */
-        font-weight: 900; /* In đậm hẳn lên */
-        pointer-events: none; /* Không cho bấm vào trang đang đứng */
+        color: #000;  
+        font-weight: 900; 
+        pointer-events: none; 
     }
-
-/* Style cho mũi tên */
+     
 .page-arrow {
     display: flex;
     align-items: center;
@@ -160,25 +138,18 @@
     .page-arrow:hover {
         color: #000;
     }
-
-    /* Ẩn mũi tên khi không cần thiết nhưng vẫn giữ layout (nếu dùng span disabled) */
+     
     .page-arrow.disabled {
         visibility: hidden;
     }
-
-
-
-
-    /*Thêm sản phẩm vào giỏ từ homepage*/
-/* Khung ảnh bên trái: Cao bằng cột cha (100%) */
+     
 .quick-view-img-box {
     width: 100%;
     height: 100%;
     min-height: 450px;
     position: relative;
     background: #f9f9f9;
-}
-    /* Ảnh bên trong: Phủ kín khung */
+} 
     .quick-view-img-box img {
         position: absolute;
         top: 0;
@@ -189,10 +160,9 @@
         object-position: center;
         mix-blend-mode: multiply;
     }
-
-/* Nút Size */
+     
 .btn-size-popup {
-    width: 45px; /* Rộng hơn xíu cho đẹp */
+    width: 45px;  
     height: 45px;
     border: 1px solid #ddd;
     background: #fff;
@@ -219,8 +189,7 @@
         background: #eee;
         text-decoration: line-through;
     }
-
-/* Input số lượng */
+     
 .quantity-box-popup {
     display: flex;
     width: 110px;
@@ -245,15 +214,14 @@
         font-weight: 600;
         font-size: 14px;
     }
-
-/* Nút Thêm giỏ (Giữ nguyên style cũ) */
+     
 .btn-add-cart-popup {
     width: 100%;
     height: 55px;
     background: #000;
     color: #fff;
     border: none;
-    font-weight: 800; /* Đậm hơn chút */
+    font-weight: 800; 
     text-transform: uppercase;
     font-size: 15px;
     letter-spacing: 0.5px;
@@ -263,3 +231,48 @@
     .btn-add-cart-popup:hover {
         opacity: 0.8;
     }
+
+/*hiện ra khi create product*/
+.image-container {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    margin-right: 15px; 
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: visible; 
+}
+
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+.btn-delete-image {
+    position: absolute;
+    top: -10px; 
+    right: -10px; 
+    background-color: #dc3545; 
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;  
+    text-align: center;
+    line-height: 24px;  
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+    padding: 0;  
+}
+
+    .btn-delete-image:hover {
+        background-color: #c82333; 
+    }
+

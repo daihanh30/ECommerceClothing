@@ -24,17 +24,14 @@ namespace ECommerceClothing.Controllers
                 .Include(p => p.ProductSizes) 
                 .OrderByDescending(p => p.CreatedAt);
 
-            // 2. Đếm tổng số lượng sản phẩm và tính tổng số trang
             int totalProducts = query.Count();
             int totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
 
-            // 3. Phân trang: Skip (Bỏ qua) sản phẩm trang trước, Take (Lấy) 8 cái của trang này
             var products = query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            // 4. Quăng số liệu phân trang ra View (HTML) để vẽ nút bấm
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
 

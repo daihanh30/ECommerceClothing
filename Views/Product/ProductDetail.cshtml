@@ -3,13 +3,17 @@
 @{
     ViewData["Title"] = Model.Name;
 
-    // 1. Chuẩn hóa danh sách Size
     var allSizes = new List<string> { "S", "M", "L", "XL" };
-    var availableSizes = Model.Size?.Split(',').Select(s => s.Trim()).ToList() ?? new List<string>();
+    var availableSizes = Model.ProductSizes?
+                            .Where(ps => ps.Quantity > 0)
+                            .Select(ps => ps.SizeName)
+                            .ToList() ?? new List<string>();
 
-    // 2. Lấy dữ liệu Review từ ViewBag
     var reviews = ViewBag.Reviews as List<ECommerceClothing.Models.Reviews>;
     var totalReviews = (int)(ViewBag.TotalReviews ?? 0);
+}
+@{
+    bool isOutOfStock = (Model.ProductSizes?.Sum(ps => ps.Quantity) ?? 0) <= 0;
 }
 
 <link rel="stylesheet" href="~/css/detail.css" asp-append-version="true" />
@@ -26,7 +30,15 @@
                     foreach (var img in Model.Images)
                     {
                         <div class="gallery-item mb-4">
-                            <img src="@img.ImageUrl" alt="@Model.Name" class="product-main-img shadow-sm" />
+                            <img src="@img.ImageUrl"
+                                 class="product-main-img shadow-sm @(isOutOfStock ? "opacity-50" : "")" />
+                            @if (isOutOfStock)
+                            {
+                                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+                            background:white; color:red; font-weight:bold; padding:10px 20px; border:2px solid red;">
+                                    OUT OF STOCK
+                                </div>
+                            }
                         </div>
                     }
                 }
@@ -39,27 +51,12 @@
                     <h1 class="detail-name">@Model.Name</h1>
                     <p class="detail-price">@((Model.Price * 1000).ToString("#,##0")) VND</p>
 
-                    @* 👉 ĐÃ SỬA PHẦN SIZE: Xử lý hiển thị "ONE SIZE" đẹp, căn giữa, xóa viền (CategoryId = 3) *@
-                    @if (Model.CategoryId == 3)
+                    @if (Model.ProductTypeObj?.CategoryId == 15)
                     {
-                        <div class="detail-option mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="fw-bold text-uppercase small" style="letter-spacing: 1px;">Size</label>
-                            </div>
+                        
+                        var hiddenSizeVal = availableSizes.FirstOrDefault() ?? "Free Size";
 
-                            <div class="d-flex mt-2">
-                                <div class="bg-dark text-white d-flex justify-content-center align-items-center"
-                                     style="cursor: default; width: auto; padding: 0 30px; min-width: 120px; height: 40px; font-weight: bold; letter-spacing: 1px;">
-                                    ONE SIZE
-                                </div>
-                            </div>
-
-                            @{
-                                var firstAvailable = availableSizes.FirstOrDefault();
-                                var hiddenSizeVal = !string.IsNullOrEmpty(firstAvailable) ? firstAvailable : "One Size";
-                            }
-                            <input type="hidden" id="selectedSize" name="Size" value="@hiddenSizeVal" />
-                        </div>
+                        <input type="hidden" id="selectedSize" name="Size" value="@hiddenSizeVal" />
                     }
                     else
                     {
@@ -91,25 +88,37 @@
                     }
 
                     @{
-                        // Kiểm tra xem có phải Admin đang đăng nhập không
                         bool isAdmin = User.Identity.IsAuthenticated && User.IsInRole("Admin");
                     }
 
-                    <div class="action-buttons mt-5">
-                        <button class="btn-action btn-add-cart mb-3 @(isAdmin ? "admin-locked" : "")"
-                                onclick="@(isAdmin ? "return false;" : "handleBuyProcess(false)")"
-                                @(isAdmin ? "disabled" : "")>
-                            ADD TO CART
-                        </button>
+                    <div class="action-buttons mt-3">
+                        @if (isOutOfStock)
+                        {
+                            <button class="btn-action btn-add-cart mb-3" disabled style="opacity:0.5; cursor:not-allowed;">
+                                OUT OF STOCK
+                            </button>
 
-                        <button class="btn-action btn-buy-now @(isAdmin ? "admin-locked" : "")"
-                                onclick="@(isAdmin ? "return false;" : "handleBuyProcess(true)")"
-                                @(isAdmin ? "disabled" : "")>
-                            BUY IT NOW
-                        </button>
+                            <button class="btn-action btn-buy-now" disabled style="opacity:0.5; cursor:not-allowed;">
+                                OUT OF STOCK
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-action btn-add-cart mb-3 @(isAdmin ? "admin-locked" : "")"
+                                    onclick="@(isAdmin ? "return false;" : "handleBuyProcess(false)")"
+                                    @(isAdmin ? "disabled" : "")>
+                                ADD TO CART
+                            </button>
+
+                            <button class="btn-action btn-buy-now @(isAdmin ? "admin-locked" : "")"
+                                    onclick="@(isAdmin ? "return false;" : "handleBuyProcess(true)")"
+                                    @(isAdmin ? "disabled" : "")>
+                                BUY IT NOW
+                            </button>
+                        }
+                    </div>
                     </div>
 
-                    @* Mô tả *@
                     <div class="detail-desc mt-5 pt-4 border-top">
                         <h5 class="fw-bold small text-uppercase mb-3" style="letter-spacing: 1px;">Description</h5>
                         <div class="desc-content small text-muted" style="line-height: 1.8;">
@@ -126,6 +135,47 @@
             </div>
         </div>
     </div> <hr class="thin-divider my-5">
+
+@if (ViewBag.RecommendedProducts != null)
+{
+    var recommendedList = (List<ECommerceClothing.Models.Product>)ViewBag.RecommendedProducts;
+    if (recommendedList.Any())
+    {
+        <div class="row justify-content-center mb-5 pb-3 mt-5">
+            <div class="col-lg-10">
+                <h4 class="fw-bold text-uppercase mb-5 text-center" style="letter-spacing: 3px;">You May Also Like</h4>
+
+                <div class="row gx-5">
+                    @foreach (var item in recommendedList)
+                    {
+                        <div class="col-md-3 col-sm-6 mb-4">
+                            <a href="@Url.Action("Detail", "Product", new { id = item.Id })" class="rec-product-card">
+
+                                <div class="rec-img-wrapper">
+                                    @if (item.Images != null && item.Images.Any())
+                                    {
+                                        <img src="@item.Images.FirstOrDefault().ImageUrl" alt="@item.Name">
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/no-image.png" alt="No image">
+                                    }
+                                </div>
+
+                                <div class="rec-info mt-3">
+                                    <span class="rec-title">@item.Name</span>
+                                    <p class="rec-price">@((item.Price * 1000).ToString("#,##0")) VND</p>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <hr class="thin-divider my-5">
+    }
+}
 
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -200,12 +250,12 @@
             </div>
 
             <div class="modal-body text-center p-4">
-                @if (Model.CategoryId == 1)
+                @if (Model.ProductTypeObj?.CategoryId == 1)
                 {
                     <h5 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 2px;">Tops Size Guide</h5>
                     <img src="/images/size-tops.jpg" alt="Tops Size Guide" class="img-fluid" />
                 }
-                else if (Model.CategoryId == 2)
+                else if (Model.ProductTypeObj?.CategoryId == 2)
                 {
                     <h5 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 2px;">Bottoms Size Guide</h5>
                     <img src="/images/size-bottoms.jpg" alt="Bottoms Size Guide" class="img-fluid" />
@@ -232,20 +282,19 @@
             $('#sizeError').hide();
         }
 
-                        function handleBuyProcess(isBuyNow) {
+        function handleBuyProcess(isBuyNow) {
             var productId = "@Model.Id";
             var size = $('#selectedSize').val();
-            var categoryId = "@Model.CategoryId";
+            var categoryId = "@(Model.ProductTypeObj?.CategoryId ?? 0)";
 
             // Kiểm tra chọn size
-            if (categoryId != "3" && !size) {
+            if (categoryId != 3 && !size) {
                 $('#sizeError').fadeIn();
                 return;
             }
 
             if (isBuyNow) {
-                // Nút BUY NOW: Cứ nhảy thẳng qua Checkout.
-                // Vì CheckoutController đã có [Authorize], ASP.NET sẽ TỰ ĐỘNG đá khách qua trang Đăng nhập, đăng nhập xong nó tự động chở khách quay lại trang Checkout luôn! Rất xịn!
+                
                 window.location.href = `/Checkout?buyNowId=${productId}&size=${size}&qty=1`;
             } else {
                 // Nút ADD TO CART
@@ -253,8 +302,7 @@
                     url: '/Cart/AddToCartAjax',
                     type: 'POST',
                     data: { Id: productId, Size: size, Quantity: 1 },
-                    success: function (res) {
-                        // 👉 ĐÃ FIX: Bắt tín hiệu chưa đăng nhập ở đây
+                    success: function (res) { 
                         if (res.notLoggedIn) {
                             var currentUrl = window.location.pathname + window.location.search;
                             window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(currentUrl);
@@ -266,13 +314,12 @@
                             var myOffcanvas = document.getElementById('cartSidebar');
                             var bsOffcanvas = new bootstrap.Offcanvas(myOffcanvas);
                             bsOffcanvas.show();
-                        } else {
-                            // 👉 ĐÃ FIX: Lỡ C# không gửi msg thì báo lỗi chung chung, không bị undefined nữa
-                            alert(res.msg || "Có lỗi xảy ra, vui lòng thử lại!");
+                        } else { 
+                            alert(res.msg || "An error occurred, please try again!");
                         }
                     },
                     error: function () {
-                        alert("Lỗi kết nối tới máy chủ.");
+                        alert("Server connection error.");
                     }
                 });
             }

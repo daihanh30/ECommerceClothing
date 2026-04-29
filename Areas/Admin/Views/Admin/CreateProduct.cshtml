@@ -5,12 +5,13 @@
 }
 
 <div class="container mt-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">Add New Product</h5>
+    <div class="card shadow-sm border-0 rounded-3">
+
+        <div class="card-header custom-card-header">
+            <h5 class="mb-0 custom-header-title">Add New Product</h5>
         </div>
 
-        <div class="card-body bg-light">
+        <div class="card-body bg-white p-4">
             <form asp-area="Admin"
                   asp-controller="Admin"
                   asp-action="CreateProduct"
@@ -18,6 +19,8 @@
                   enctype="multipart/form-data">
 
                 @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mt-2 mb-3 fw-bold bg-white p-2 border border-danger rounded"
+                     style="display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -27,17 +30,16 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Category</label>
-                        <select asp-for="CategoryId" class="form-select"
-                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))"
-                                id="CategorySelect">
+                        <label class="form-label">Category</label>
+                        <select name="SelectedCategoryId" class="form-select"
+                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name", ViewBag.SelectedCategoryId))"
+                                id="CategorySelect" required>
                             <option value="">Select Category</option>
                         </select>
-                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Product Type</label>
+                        <label class="form-label">Product Type</label>
                         <select asp-for="ProductTypeId" class="form-select"
                                 asp-items="@(new SelectList(ViewBag.ProductTypes, "ProductTypeId", "Name"))"
                                 id="TypeSelect">
@@ -50,78 +52,97 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Price</label>
-                        <input asp-for="Price" type="number" class="form-control" />
-
-                        <input type="hidden" asp-for="Stock" value="0" />
-                        <input type="hidden" asp-for="Size" id="SizeInput" />
+                        <input asp-for="Price" type="number" class="form-control" min="1" required
+                               oninput="if(this.value !== '' && this.value < 1) this.value = '';" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Phân loại Size & Số lượng tồn kho</label>
+                        <div id="sizeSection">
+                            <label class="form-label">Inventory quantity (by Size)</label>
 
-                        <div class="p-3 border rounded bg-white">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <div class="size-item d-flex align-items-center">
-                                        <div class="form-check me-2" style="width: 50px;">
-                                            <input class="form-check-input size-checkbox" type="checkbox" value="S" id="sizeS" name="SelectedSizes">
-                                            <label class="form-check-label fw-bold" for="sizeS">S</label>
+                            <div class="p-3 border rounded bg-white" style="border-color: #cbd5e1 !important;">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="size-item d-flex align-items-center">
+                                            <div class="form-check me-2" style="width: 50px;">
+                                                <input class="form-check-input size-checkbox" type="checkbox" value="S" id="sizeS" name="SelectedSizes">
+                                                <label class="form-check-label fw-bold text-secondary" for="sizeS">S</label>
+                                            </div>
+                                            <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none"
+                                                   placeholder="Quantity..." min="1" disabled
+                                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
                                         </div>
-                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <div class="size-item d-flex align-items-center">
-                                        <div class="form-check me-2" style="width: 50px;">
-                                            <input class="form-check-input size-checkbox" type="checkbox" value="M" id="sizeM" name="SelectedSizes">
-                                            <label class="form-check-label fw-bold" for="sizeM">M</label>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="size-item d-flex align-items-center">
+                                            <div class="form-check me-2" style="width: 50px;">
+                                                <input class="form-check-input size-checkbox" type="checkbox" value="M" id="sizeM" name="SelectedSizes">
+                                                <label class="form-check-label fw-bold text-secondary" for="sizeM">M</label>
+                                            </div>
+                                            <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none"
+                                                   placeholder="Quantity..." min="1" disabled
+                                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
                                         </div>
-                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <div class="size-item d-flex align-items-center">
-                                        <div class="form-check me-2" style="width: 50px;">
-                                            <input class="form-check-input size-checkbox" type="checkbox" value="L" id="sizeL" name="SelectedSizes">
-                                            <label class="form-check-label fw-bold" for="sizeL">L</label>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="size-item d-flex align-items-center">
+                                            <div class="form-check me-2" style="width: 50px;">
+                                                <input class="form-check-input size-checkbox" type="checkbox" value="L" id="sizeL" name="SelectedSizes">
+                                                <label class="form-check-label fw-bold text-secondary" for="sizeL">L</label>
+                                            </div>
+                                            <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none"
+                                                   placeholder="Quantity..." min="1" disabled
+                                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
                                         </div>
-                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <div class="size-item d-flex align-items-center">
-                                        <div class="form-check me-2" style="width: 50px;">
-                                            <input class="form-check-input size-checkbox" type="checkbox" value="XL" id="sizeXL" name="SelectedSizes">
-                                            <label class="form-check-label fw-bold" for="sizeXL">XL</label>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="size-item d-flex align-items-center">
+                                            <div class="form-check me-2" style="width: 50px;">
+                                                <input class="form-check-input size-checkbox" type="checkbox" value="XL" id="sizeXL" name="SelectedSizes">
+                                                <label class="form-check-label fw-bold text-secondary" for="sizeXL">XL</label>
+                                            </div>
+                                            <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none"
+                                                   placeholder="Quantity..." min="1" disabled
+                                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
                                         </div>
-                                        <input type="number" name="SelectedQuantities" class="form-control form-control-sm stock-input d-none" placeholder="Số lượng..." min="1" disabled>
                                     </div>
                                 </div>
                             </div>
-                        </div>q
-                        <small class="text-muted">Chỉ cần nhập số lượng cho những size có hàng.</small>
+                        </div>
+
+                        <div id="noSizeSection" style="display:none;">
+                            <label class="form-label">Stock (Free Size)</label>
+                            <input type="hidden" name="SelectedSizes" value="Free Size" class="no-size-input" disabled />
+                            <input type="number" name="SelectedQuantities" id="ActualStockInput" class="form-control no-size-input" min="1" disabled
+                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
+                        </div>
+                        <small class="text-muted mt-1 d-block">Simply enter the quantity for the sizes that are in stock.</small>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Product Images</label>
-                    <input type="file" name="images" multiple class="form-control" accept="image/*" />
-                    <small class="text-muted">You can select 2–4 images</small>
+
+                <div class="col-12">
+                    <label class="form-label">Product Images (Multiple)</label>
+                    <input type="file" name="images" id="productImagesInput" class="form-control" multiple accept=".jpg,.jpeg,.png">
+                    <span class="text-danger small fw-bold">@Html.ValidationMessage("Images")</span>
+                    <small class="text-muted d-block mt-1">You can select multiple images (JPG/PNG only).</small>
+                    <div id="imagePreviewContainer" class="d-flex gap-2 flex-wrap mt-3"></div>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4 mt-3">
                     <label class="form-label">Description</label>
-                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <a asp-area="Admin" asp-controller="Admin" asp-action="Products" class="btn btn-secondary">
+                <div class="d-flex justify-content-end gap-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                    <a asp-area="Admin" asp-controller="Admin" asp-action="Products" class="btn-custom-cancel">
                         Cancel
                     </a>
-                    <button type="submit" class="btn btn-dark">
-                        Save Product
+                    <button type="submit" class="btn-custom-new">
+                        Save
                     </button>
                 </div>
 
@@ -130,55 +151,266 @@
     </div>
 </div>
 
-<script>
-    // 1. Script xử lý Dropdown động (Cascading Dropdown) - Giữ nguyên của bạn
-    document.getElementById('CategorySelect').addEventListener('change', function() {
-        var categoryId = this.value;
-        var typeSelect = document.getElementById('TypeSelect');
-        typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-        if (categoryId) {
-            fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(item => {
-                        var option = document.createElement('option');
-                        option.value = item.id;
-                        option.text = item.name;
-                        typeSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Lỗi lấy dữ liệu:', error));
-        }
-    });
+            const categorySelect = document.getElementById("CategorySelect");
+            const typeSelect = document.getElementById("TypeSelect");
+            const sizeSection = document.getElementById("sizeSection");
+            const noSizeSection = document.getElementById("noSizeSection");
+            const checkboxes = document.querySelectorAll('.size-checkbox');
+            const hiddenSizeInput = document.getElementById('SizeInput');
+            const fileInput = document.getElementById('productImagesInput');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            let dt = new DataTransfer();
+            if (categorySelect.value !== "") {
+                toggleStockInput();
+            }
+            function clearError(inputName, isSelect = false) {
+                const span = document.querySelector(`span[data-valmsg-for="${inputName}"]`);
+                if (span) span.innerHTML = "";
+            }
 
-    // 2. Script mới xử lý ẩn hiện ô nhập Stock khi chọn Size
-    document.addEventListener("DOMContentLoaded", function() {
-        const checkboxes = document.querySelectorAll('.size-checkbox');
-        const hiddenInput = document.getElementById('SizeInput'); // Giữ lại cho Model cũ đỡ lỗi
+            document.querySelector('input[name="Name"]').addEventListener('input', () => clearError("Name"));
+            document.querySelector('input[name="Price"]').addEventListener('input', () => clearError("Price"));
+            document.querySelector('textarea[name="Description"]').addEventListener('input', () => clearError("Description"));
 
-        checkboxes.forEach(chk => {
-            chk.addEventListener('change', function() {
-                // Tìm ô input nhập số lượng nằm cùng hàng (cùng thẻ cha .size-item)
-                const qtyInput = this.closest('.size-item').querySelector('.stock-input');
+                    categorySelect.addEventListener('change', function() {
+            var categoryId = this.value;
+            typeSelect.innerHTML = '<option value="">Select Type</option>';
 
-                if (this.checked) {
-                    qtyInput.classList.remove('d-none'); // Hiện ô nhập
-                    qtyInput.disabled = false; // Bật để gửi dữ liệu đi
-                    qtyInput.required = true; // Bắt buộc phải nhập
-                } else {
-                    qtyInput.classList.add('d-none'); // Ẩn ô nhập
-                    qtyInput.disabled = true; // Vô hiệu hóa không cho gửi đi
-                    qtyInput.required = false;
-                    qtyInput.value = ''; // Xóa số liệu cũ
-                }
+            clearError("ProductTypeId");
 
-                // Cập nhật lại chuỗi "S,M" vào hidden input giống code cũ của bạn
-                const checked = Array.from(checkboxes)
-                                     .filter(c => c.checked)
-                                     .map(c => c.value);
-                hiddenInput.value = checked.join(',');
-            });
+            if (categoryId) {
+                fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                var option = document.createElement('option');
+                                option.value = item.id;
+                                option.text = item.name;
+                                typeSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Data:', error));
+            }
         });
-    });
-</script>
+            // show/hide stock 
+            function toggleStockInput() {
+                if (categorySelect.selectedIndex <= 0) return;
+
+                const selectedText = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+                const stockInputNoSize = document.getElementById('ActualStockInput');
+                const hiddenFreeSize = noSizeSection.querySelector('input[name="SelectedSizes"]');
+
+                if (selectedText.includes("accessories")) {
+                    document.querySelectorAll('.size-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        const qtyInput = cb.closest('.size-item').querySelector('.stock-input');
+                        qtyInput.value = '';
+                        qtyInput.disabled = true;
+                        qtyInput.classList.add('d-none');
+                    });
+
+                    sizeSection.querySelectorAll('input').forEach(i => i.disabled = true);
+                    sizeSection.style.display = "none";
+                    noSizeSection.style.display = "block";
+
+                    if(stockInputNoSize) stockInputNoSize.disabled = false;
+                    if(hiddenFreeSize) hiddenFreeSize.disabled = false;
+
+                } else {
+                    document.querySelectorAll('.size-checkbox').forEach(cb => {
+                        cb.disabled = false;
+                        const qtyInput = cb.closest('.size-item').querySelector('.stock-input');
+                        qtyInput.disabled = !cb.checked;
+                    });
+
+                    sizeSection.style.display = "block";
+                    noSizeSection.style.display = "none";
+
+                    if(stockInputNoSize) stockInputNoSize.disabled = true;
+                    if(hiddenFreeSize) hiddenFreeSize.disabled = true;
+                }
+            }
+
+            categorySelect.addEventListener("change", toggleStockInput);
+
+            categorySelect.addEventListener('change', function() {
+                var categoryId = this.value;
+                typeSelect.innerHTML = '<option value="">Select Type</option>';
+
+                if (categoryId) {
+                    fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(item => {
+                                var option = document.createElement('option');
+                                option.value = item.id;
+                                option.text = item.name;
+                                typeSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Data:', error));
+                }
+            });
+
+            checkboxes.forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const qtyInput = this.closest('.size-item').querySelector('.stock-input');
+                    if (this.checked) {
+                        qtyInput.classList.remove('d-none');
+                        qtyInput.disabled = false;
+                    } else {
+                        qtyInput.classList.add('d-none');
+                        qtyInput.disabled = true;
+                        qtyInput.value = '';
+                    }
+
+                    const checked = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+                    if(hiddenSizeInput) hiddenSizeInput.value = checked.join(',');
+                });
+            });
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    let hasInvalidFile = false;
+                    for(let i = 0; i < this.files.length; i++) {
+                        const file = this.files[i];
+                        if (file.type.startsWith('image/')) {
+                            let isDup = false;
+                            for(let j = 0; j < dt.files.length; j++) {
+                                if (dt.files[j].name === file.name && dt.files[j].size === file.size) { isDup = true; break; }
+                            }
+                            if (!isDup) dt.items.add(file);
+                        } else {
+                            hasInvalidFile = true;
+                        }
+                    }
+
+                    fileInput.files = dt.files;
+                    renderPreviews();
+
+                    if (fileInput.files.length > 0) clearError("Images");
+                    if (hasInvalidFile) alert('Invalid format! Only image files (JPG/PNG) are allowed.');
+                });
+            }
+
+            function renderPreviews() {
+                if(!previewContainer) return;
+                previewContainer.innerHTML = '';
+                Array.from(dt.files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'image-container';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn-delete-image';
+                        btn.innerHTML = '&times;';
+                        btn.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            removePreviewFile(index);
+                        });
+                        div.appendChild(img);
+                        div.appendChild(btn);
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function removePreviewFile(indexToRemove) {
+                const newDt = new DataTransfer();
+                for(let i = 0; i < dt.files.length; i++) {
+                    if (i !== indexToRemove) newDt.items.add(dt.files[i]);
+                }
+                dt = newDt;
+                if(fileInput) fileInput.files = dt.files;
+                renderPreviews();
+            }
+
+            const form = document.querySelector('form');
+
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+
+                    // Hàm in lỗi ra thẻ span
+                    function showError(name, msg) {
+                        const span = document.querySelector(`span[data-valmsg-for="${name}"]`);
+                        if (span) span.innerHTML = msg;
+                        hasError = true;
+                    }
+
+                    // Kiểm tra cơ bản 
+                    if (document.querySelector('input[name="Name"]').value.trim() === "") {
+                        showError("Name", "Please enter a product name.");
+                    }
+                    if (document.querySelector('input[name="Price"]').value === "") {
+                        showError("Price", "Please enter a product price.");
+                    }
+                    if (categorySelect.value === "") {
+                        showError("CategoryId", "Please select a Category.");
+                    }
+                            if (typeSelect.value === "") {
+                            if (typeSelect.options.length > 1) {
+                                showError("ProductTypeId", "Please select a Product Type.");
+                            } else {
+                                clearError("ProductTypeId");
+                            }
+                        }
+
+                    // Kiểm tra hình 
+                    if (fileInput && fileInput.files.length === 0) {
+                        showError("Images", "Please select at least one product image.");
+                    }
+
+                    // Kiểm tra mô tả
+                    const descInput = document.querySelector('textarea[name="Description"]');
+                    if (descInput && descInput.value.trim() === "") {
+                        showError("Description", "Please enter a product description (it must not contain only spaces).");
+                    }
+
+                    // Kiểm tra kho
+                    const stockErrorSpan = document.querySelector('span[data-valmsg-for="Stock"]'); 
+                    if (categorySelect.value !== "") {
+                        const selectedText = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+                        let totalStock = 0;
+
+                        if (selectedText.includes("accessories")) {
+                            const stockInput = document.getElementById('ActualStockInput');
+                            if(stockInput && !stockInput.disabled) totalStock = parseInt(stockInput.value) || 0;
+                        } else {
+                            const checkedBoxes = document.querySelectorAll('.size-checkbox:checked');
+                            checkedBoxes.forEach(cb => {
+                                const qtyInput = cb.closest('.size-item').querySelector('.stock-input');
+                                if(qtyInput && !qtyInput.disabled) totalStock += parseInt(qtyInput.value) || 0;
+                            });
+                        }
+
+                        if (totalStock <= 0) {
+                            if(stockErrorSpan) {
+                                stockErrorSpan.innerHTML = "Inventory quantity must be at least 1. You must enter a quantity to create this product.";
+                            } else {
+                                alert("Inventory quantity must be at least 1.");
+                            }
+                            hasError = true;
+                        } else {
+                            if(stockErrorSpan) stockErrorSpan.innerHTML = "";
+                        }
+                    }
+
+                    if (hasError) {
+                        event.preventDefault();
+                    }
+                });
+            }
+        }); 
+    </script>
+}

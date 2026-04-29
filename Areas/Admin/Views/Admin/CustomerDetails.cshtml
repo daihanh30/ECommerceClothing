@@ -4,104 +4,141 @@
     Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml";
 }
 
-<div class="mb-4">
-    <a asp-action="Customers" class="text-decoration-none text-muted"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
-    <h3 class="fw-bold mt-2">Customer Profile</h3>
-</div>
+<div class="container-fluid px-4 mt-4 mb-5">
 
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card border-0 shadow-sm text-center p-4">
-            <div class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 24px;">
-                @Model.FullName.Substring(0, 1).ToUpper()
-            </div>
-            <h5 class="fw-bold mb-1">@Model.FullName</h5>
-            <p class="text-muted small mb-3">@Model.Email</p>
-            <hr />
-            <div class="text-start">
-                <p class="mb-2"><i class="fa-solid fa-phone text-muted me-2"></i> @Model.PhoneNumber</p>
-                <p class="mb-0"><i class="fa-regular fa-calendar text-muted me-2"></i> Member since: 2026</p>
-            </div>
-        </div>
+    <div class="mb-4">
+        <a asp-action="Customers" class="text-decoration-none text-muted fw-bold mb-2 d-inline-block" style="font-size: 14px; transition: color 0.2s;">
+            <i class="bi bi-arrow-left me-1"></i> Back to Customers
+        </a>
+        <h3 class="fw-bold mb-0 text-uppercase" style="color: #2b3445;">Customer Profile</h3>
     </div>
 
-    <div class="col-md-8">
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-3">
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Total Orders</p>
-                    <h3 class="fw-bold mb-0">@Model.TotalOrders</h3>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm text-center p-4 h-100" style="border-radius: 12px;">
+
+                <div class="avatar-wrapper">
+                    <div class="avatar-lg shadow-sm">
+                        @Model.FullName.Substring(0, 1).ToUpper()
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-3">
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Total Spent (CLV)</p>
-                    <h3 class="fw-bold text-success mb-0">@(Model.TotalSpent.ToString("#,##0")) VND</h3>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-3 border-start @(Model.CancelRate > 30 ? "border-danger border-4" : "")">
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Cancel Rate</p>
-                    <h3 class="fw-bold @(Model.CancelRate > 30 ? "text-danger" : "text-dark") mb-0">
-                        @Model.CancelRate%
-                    </h3>
-                    @if (Model.CancelRate > 30)
-                    {
-                        <small class="text-danger fw-bold">High Risk!</small>
-                    }
+
+                <h5 class="fw-bold mb-1 text-dark" style="font-size: 18px;">@Model.FullName</h5>
+                <p class="text-muted small mb-4">@Model.Email</p>
+
+                <hr class="text-muted opacity-25 mx-3" />
+
+                <div class="text-start px-3 mt-3">
+                    <p class="mb-3 text-dark d-flex align-items-center">
+                        <i class="bi bi-telephone text-muted me-3 fs-5"></i>
+                        <span class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not updated" : Model.PhoneNumber)
+                        </span>
+                    </p>
+                    <p class="mb-0 text-dark d-flex align-items-center">
+                        <i class="bi bi-calendar-check text-muted me-3 fs-5"></i>
+                        <span class="fw-semibold">Member since: 2026</span>
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom p-3">
-                <h6 class="fw-bold mb-0 text-uppercase">Order History</h6>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">Order ID</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.OrderHistory != null && Model.OrderHistory.Any())
-                        {
-                            foreach (var order in Model.OrderHistory)
+        <div class="col-md-8">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px;">
+                        <p class="text-muted small fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Orders</p>
+                        <h3 class="fw-bold mb-0 text-dark">@Model.TotalOrders</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px;">
+                        <p class="text-muted small fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Spent</p>
+                        <h3 class="fw-bold mb-0 text-dark">@(Model.TotalSpent.ToString("#,##0")) VND</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; @(Model.CancelRate > 30 ? "background-color: #fef2f2; border: 1px solid #fecaca !important;" : "")">
+                        <p class="text-muted small fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Cancel Rate</p>
+
+                        <div class="d-flex align-items-end gap-2">
+                            <h3 class="fw-bold mb-0 @(Model.CancelRate > 30 ? "text-danger" : "text-dark")">
+                                @Model.CancelRate%
+                            </h3>
+
+                            @if (Model.CancelRate > 30)
                             {
-                                <tr>
-                                    <td class="ps-3 fw-bold">#@order.Id</td>
-                                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                                    <td class="fw-bold">@(order.TotalAmount.ToString("#,##0")) VND</td>
-                                    <td>
-                                        @if (order.Status == "Completed" || order.Status == "Delivered")
-                                        {
-                                            <span class="badge bg-success">@order.Status</span>
-                                        }
-                                        else if (order.Status == "Cancelled")
-                                        {
-
-                                            <span class="badge bg-danger">@order.Status</span>
-                                        }
-                                        else
-                                        {
-
-                                            <span class="badge bg-warning text-dark">@order.Status</span>
-                                        }
-                                    </td>
-                                </tr>
+                                <span class="badge bg-danger rounded-pill mb-1"><i class="bi bi-exclamation-triangle-fill"></i> High Risk</span>
                             }
-                        }
-                        else
-                        {
-                            <tr><td colspan="4" class="text-center py-4 text-muted">No orders found.</td></tr>
-                        }
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold mb-0 text-uppercase text-muted" style="letter-spacing: 0.5px;">Order History</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr style="letter-spacing: 0.5px;">
+                                    <th class="ps-4 py-3 border-0">Order ID</th>
+                                    <th class="border-0">Date</th>
+                                    <th class="border-0">Total</th>
+                                    <th class="text-center pe-4 border-0">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.OrderHistory != null && Model.OrderHistory.Any())
+                                {
+                                    foreach (var order in Model.OrderHistory)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">#@order.Id.ToString("D5")</td>
+                                            <td class="text-secondary">@order.OrderDate.ToString("dd/MM/yyyy")</td>
+
+                                            <td class="fw-bold text-dark">@(order.TotalAmount.ToString("#,##0")) VND</td>
+
+                                            <td class="text-center pe-4">
+                                                @if (order.Status.ToUpper() == "COMPLETED" || order.Status.ToUpper() == "DELIVERED")
+                                                {
+                                                    <span class="status-badge status-delivered">Delivered</span>
+                                                }
+                                                else if (order.Status.ToUpper() == "CANCELLED")
+                                                {
+                                                    <span class="status-badge status-cancelled">Cancelled</span>
+                                                }
+                                                else if (order.Status.ToUpper() == "SHIPPING")
+                                                {
+                                                    <span class="status-badge status-shipping">Shipping</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge status-pending">Pending</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-muted fst-italic">
+                                            <i class="bi bi-box fs-1 d-block mb-2"></i>
+                                            This customer has not placed any orders yet.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

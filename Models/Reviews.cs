@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Http; // Bắt buộc thêm dòng này cho IFormFile
+using Microsoft.AspNetCore.Http;
 
 namespace ECommerceClothing.Models
 {
@@ -10,14 +11,16 @@ namespace ECommerceClothing.Models
         public int Id { get; set; }
 
         public string UserId { get; set; }
+        [ForeignKey("UserId")]
+        public virtual AppUser User { get; set; }
 
         public int ProductId { get; set; }
         [ForeignKey("ProductId")]
-        public Product Product { get; set; }
+        public virtual Product Product { get; set; }
 
         public int OrderId { get; set; }
         [ForeignKey("OrderId")]
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }
@@ -25,11 +28,10 @@ namespace ECommerceClothing.Models
         [StringLength(500)]
         public string Comment { get; set; }
 
-        // 👇 THÊM 2 DÒNG NÀY VÀO 👇
-        public string? ImageUrl { get; set; } // Đường dẫn ảnh lưu vào DB (Cho phép null)
+        public string? ImageUrl { get; set; } 
 
         [NotMapped]
-        public IFormFile? ImageFile { get; set; } // File ảnh up lên từ Form (Không lưu cột này vào DB)
+        public IFormFile? ImageFile { get; set; } 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

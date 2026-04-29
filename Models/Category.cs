@@ -9,6 +9,6 @@ namespace ECommerceClothing.Models
         [Required(ErrorMessage = "Category name is required")]
         public string Name { get; set; } = string.Empty;
 
-        public List<Product> Products { get; set; } = new();
+        public List<ProductType> ProductTypes { get; set; } = new();
     }
 }

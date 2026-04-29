@@ -2,7 +2,7 @@
 using ECommerceClothing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity; // Cần thêm dòng này để dùng UserManager
+using Microsoft.AspNetCore.Identity; 
 using System.Security.Claims;
 
 namespace ECommerceClothing.Controllers
@@ -10,20 +10,20 @@ namespace ECommerceClothing.Controllers
     public class AddressController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<AppUser> _userManager; // 1. Khai báo thêm UserManager
+        private readonly UserManager<AppUser> _userManager; 
 
-        // 2. Cập nhật Constructor để Inject UserManager vào
+        //Cập nhật Constructor để Inject UserManager vào
         public AddressController(AppDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
-        // 1. Lấy danh sách địa chỉ
+        //Lấy danh sách địa chỉ
         [HttpGet]
         public async Task<IActionResult> GetMyAddresses()
         {
-            var userId = _userManager.GetUserId(User); // Dùng UserManager cho đồng bộ
+            var userId = _userManager.GetUserId(User);  
             if (userId == null) return Json(new { success = false, msg = "Unauthorized" });
 
             var list = await _context.UserAddresses
@@ -34,7 +34,7 @@ namespace ECommerceClothing.Controllers
             return Json(new { success = true, data = list });
         }
 
-        // 2. THÊM ĐỊA CHỈ MỚI
+        //thêm địa chỉ mới
         [HttpPost]
         public async Task<IActionResult> AddAddress([FromBody] UserAddress model)
         {
@@ -88,9 +88,9 @@ namespace ECommerceClothing.Controllers
             return Json(new { success = true, data = def });
         }
 
-        // 4. XÓA ĐỊA CHỈ (Đã sửa lỗi int/string và UserManager)
+        //xóa địa chỉ
         [HttpPost]
-        public async Task<IActionResult> DeleteAddress(int id) // 3. Đổi sang int id để khớp với Database
+        public async Task<IActionResult> DeleteAddress(int id)  
         {
             var userId = _userManager.GetUserId(User);
             if (userId == null) return Json(new { success = false, msg = "Unauthorized" });

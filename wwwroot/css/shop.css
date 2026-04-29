@@ -1,4 +1,4 @@
-﻿/* ================= PRODUCT CARD (GIAO DIỆN DANH SÁCH) ================= */
+﻿ 
 .product-card {
     border: none;
     background: transparent;
@@ -10,7 +10,7 @@
 .product-image-container {
     position: relative;
     width: 100%;
-    padding-top: 125%; /* Tỉ lệ 4:5 */
+    padding-top: 125%; 
     background-color: #f9f9f9;
     overflow: hidden;
 }
@@ -94,10 +94,7 @@
     color: #dc3545;
     font-weight: bold;
     font-size: 15px;
-}
-/* Giá ở list để màu đỏ cho nổi (hoặc đổi #000 tùy bạn) */
-
-/* ================= POPUP QUICK VIEW (FORM MINI CART CHUẨN) ================= */
+} 
 .qv-wrapper {
     font-family: sans-serif;
 }
@@ -113,7 +110,7 @@
 .qv-price {
     font-size: 24px;
     font-weight: 800;
-    color: #dc3545; /* Màu đỏ giống hình mẫu */
+    color: #dc3545; 
     margin-bottom: 0;
 }
 
@@ -166,8 +163,7 @@
     .btn-size-qv.active {
         border: 2px solid #000;
         font-weight: 800;
-    }
-    /* Viền đen đậm khi chọn */
+    } 
     .btn-size-qv.disabled {
         color: #ccc;
         background: #f9f9f9;
@@ -175,8 +171,7 @@
         pointer-events: none;
         border-color: #eee;
     }
-
-/* Phần Số lượng: Label trái - Input phải */
+     
 .qty-section {
     display: flex;
     justify-content: space-between;
@@ -223,8 +218,7 @@
     font-size: 14px;
     outline: none;
 }
-
-/* Nút Add to Cart */
+ 
 .btn-add-cart-qv {
     width: 100%;
     padding: 14px;
@@ -240,8 +234,7 @@
     .btn-add-cart-qv:hover {
         background: #222;
     }
-
-/* Ảnh Popup */
+     
 .quick-view-img-box {
     width: 100%;
     height: 100%;

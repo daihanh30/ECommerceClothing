@@ -160,7 +160,7 @@
                         .on("reset." + data_validation, onResetProxy)
                         .validate(this.options);
                 },
-                validate: function () {  // a validation function that is called by unobtrusive Ajax
+                validate: function () { 
                     $form.validate();
                     return $form.valid();
                 }

@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Shopping Cart";
-    // Lấy danh sách cần tick từ ViewBag
     var preTickedItems = ViewBag.PreTickedItems as List<string>;
 }
 
@@ -11,41 +10,49 @@
 <div class="cart-container">
     <h2 class="cart-title">CART</h2>
 
+    <div id="js-error-message" class="alert alert-danger text-center mt-2 mb-2" style="display:none; font-weight: bold;"></div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger text-center mt-2 mb-2">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     @if (Model != null && Model.Count > 0)
     {
-        @* 👉 ĐÃ SỬA: Bọc toàn bộ danh sách và nút Checkout vào trong thẻ form *@
         <form action="/Checkout" method="get" id="cart-form">
             <div id="cart-list">
                 @foreach (var item in Model)
                 {
-                    <div class="cart-item js-cart-item" data-price="@item.Price" data-id="@item.ProductId" data-size="@item.Size">
+                    <div class="cart-item js-cart-item" data-price="@item.Product.Price" data-id="@item.ProductId" data-size="@item.Size">
 
                         <div class="item-select">
                             @{
                                 string identifier = $"{item.ProductId}|{item.Size}";
-                                bool isChecked = true; // Mặc định vào giỏ hàng bình thường thì tick hết
-
-                                // 👉 NẾU ĐANG ĐI TỪ BUY AGAIN QUA, CHỈ TICK NHỮNG MÓN TRONG ĐƠN CŨ
+                                bool isChecked = true; 
+                                 
                                 if (preTickedItems != null)
                                 {
                                     isChecked = preTickedItems.Contains(identifier);
                                 }
                             }
-                            <input type="checkbox" name="selectedItems" value="@identifier" class="cart-checkbox js-checkbox" onchange="updateTotal()" @(isChecked ? "checked" : "") />
+                            <input type="checkbox" name="selectedItems" value="@item.ProductId|@item.Size|@item.Quantity" class="cart-checkbox js-checkbox" onchange="updateTotal()" @(isChecked ? "checked" : "") />
                         </div>
 
                         <div class="item-img-box">
-                            <img src="@item.ProductImage" alt="@item.ProductName">
+                            <img src="@(item.Product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
+                                 alt="@item.Product.Name">
                         </div>
 
                         <div class="item-info">
                             <p class="brand">NIXONÉ</p>
-                            <p class="name">@item.ProductName</p>
+                            <p class="name">@item.Product.Name</p>
                             <p class="size">Size: @item.Size</p>
                         </div>
 
                         <div class="item-price-display">
-                            @((item.Price * 1000).ToString("#,##0")) VND
+                            @((item.Product.Price * 1000).ToString("#,##0")) VND
                         </div>
 
                         <div class="quantity">
@@ -64,7 +71,6 @@
                 </div>
 
                 <div class="cart-action-center">
-                    @* 👉 ĐÃ SỬA: Đổi thành type="submit" để nó tự động gửi form, bỏ onclick goToCheckout đi *@
                     <button type="submit" class="checkout-btn">CHECKOUT</button>
                     <button type="button" class="continue-btn" onclick="window.location.href='/'">CONTINUE SHOPPING</button>
                 </div>
@@ -81,27 +87,33 @@
 </div>
 
 <script>
-    // 1. Hàm tính tổng tiền (Tự động quét toàn bộ sản phẩm đang được tick)
+    //Hàm tính tổng tiền
     function updateTotal() {
         let total = 0;
         const rows = document.querySelectorAll('.js-cart-item');
 
         rows.forEach(row => {
             const checkbox = row.querySelector('.js-checkbox');
-            if (checkbox.checked) {
-                const price = parseFloat(row.getAttribute('data-price'));
+            if (checkbox && checkbox.checked) {
+                let priceStr = row.getAttribute('data-price');
+                if(priceStr) priceStr = priceStr.replace(',', '.');
+
+                const price = parseFloat(priceStr) || 0;
                 const qtyInput = row.querySelector('.js-qty-input');
-                const qty = parseInt(qtyInput.value);
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+
                 total += price * qty;
             }
         });
 
-        // Cập nhật lên giao diện (Format tiền VND)
         const formattedTotal = (total * 1000).toLocaleString('en-US');
-        document.getElementById('display-total-price').innerText = formattedTotal + " VND";
+        const displayPriceEl = document.getElementById('display-total-price');
+        if(displayPriceEl) {
+            displayPriceEl.innerText = formattedTotal + " VND";
+        }
     }
 
-    // 2. Hàm thay đổi số lượng (Cập nhật giao diện + Tính tiền + Lưu Session)
+    //Hàm thay đổi số lượng
     function changeQtyLarge(btn, change) {
         const row = btn.closest('.js-cart-item');
         const input = row.querySelector('.js-qty-input');
@@ -116,8 +128,6 @@
                 .then(() => {
                     row.remove();
                     updateTotal();
-
-                    // Nếu giỏ hàng trống thì load lại trang
                     if (document.querySelectorAll('.js-cart-item').length === 0) {
                         window.location.reload();
                     }
@@ -125,16 +135,37 @@
             return;
         }
 
-        // Cập nhật số trên ô input ngay lập tức
         input.value = newQty;
-
-        // Tính lại tiền tổng ngay lập tức cho người dùng thấy
         updateTotal();
+         
+        const checkbox = row.querySelector('.js-checkbox');
+        if (checkbox) {
+            checkbox.value = id + '|' + size + '|' + newQty;
+        }
 
-        // Gửi AJAX ngầm để cập nhật Session trên Server
         fetch(`/Cart/UpdateQuantity?id=${id}&size=${size}&change=${change}`, { method: 'POST' });
     }
 
-    // Chạy tính tiền lần đầu khi vừa vào trang
-    document.addEventListener("DOMContentLoaded", updateTotal);
+    //Khởi chạy khi trang load xong
+    document.addEventListener("DOMContentLoaded", function() {
+        updateTotal();
+
+        const cartForm = document.getElementById('cart-form');
+        if (cartForm) {
+            cartForm.addEventListener('submit', function(event) {
+                const checkedItems = document.querySelectorAll('.js-checkbox:checked');
+                const errorBox = document.getElementById('js-error-message');
+
+                if (checkedItems.length === 0) {
+                    event.preventDefault(); 
+                    errorBox.innerText = "Please select at least one product to proceed!";
+                    errorBox.style.display = 'block';
+                     
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else { 
+                    errorBox.style.display = 'none';
+                }
+            });
+        }
+    });
 </script>

@@ -115,19 +115,8 @@ namespace ECommerceClothing.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ProductImage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -136,9 +125,13 @@ namespace ECommerceClothing.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("CartItems");
                 });
@@ -205,12 +198,16 @@ namespace ECommerceClothing.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("VoucherCode")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("VoucherId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VoucherId");
 
                     b.ToTable("Orders");
                 });
@@ -255,9 +252,6 @@ namespace ECommerceClothing.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -273,17 +267,10 @@ namespace ECommerceClothing.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("ProductTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Size")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Stock")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.HasIndex("ProductTypeId");
 
@@ -345,7 +332,7 @@ namespace ECommerceClothing.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductTypeId"));
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -390,13 +377,15 @@ namespace ECommerceClothing.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Reviews");
                 });
@@ -416,6 +405,45 @@ namespace ECommerceClothing.Migrations
                     b.HasKey("RoleID");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("ECommerceClothing.Models.ShopSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("MapboxToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderPassword")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShopName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ShopSettings");
                 });
 
             modelBuilder.Entity("ECommerceClothing.Models.UserAddress", b =>
@@ -443,9 +471,11 @@ namespace ECommerceClothing.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserAddresses");
                 });
@@ -643,6 +673,40 @@ namespace ECommerceClothing.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ECommerceClothing.Models.CartItem", b =>
+                {
+                    b.HasOne("ECommerceClothing.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommerceClothing.Models.AppUser", "User")
+                        .WithMany("CartItems")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ECommerceClothing.Models.Order", b =>
+                {
+                    b.HasOne("ECommerceClothing.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommerceClothing.Models.Voucher", "Voucher")
+                        .WithMany("Orders")
+                        .HasForeignKey("VoucherId");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Voucher");
+                });
+
             modelBuilder.Entity("ECommerceClothing.Models.OrderDetail", b =>
                 {
                     b.HasOne("ECommerceClothing.Models.Order", "Order")
@@ -664,28 +728,24 @@ namespace ECommerceClothing.Migrations
 
             modelBuilder.Entity("ECommerceClothing.Models.Product", b =>
                 {
-                    b.HasOne("ECommerceClothing.Models.Category", "Category")
+                    b.HasOne("ECommerceClothing.Models.ProductType", "ProductTypeObj")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
+                        .HasForeignKey("ProductTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("ECommerceClothing.Models.ProductType", "ProductTypeObj")
-                        .WithMany()
-                        .HasForeignKey("ProductTypeId");
-
-                    b.Navigation("Category");
 
                     b.Navigation("ProductTypeObj");
                 });
 
             modelBuilder.Entity("ECommerceClothing.Models.ProductImage", b =>
                 {
-                    b.HasOne("ECommerceClothing.Models.Product", null)
+                    b.HasOne("ECommerceClothing.Models.Product", "Product")
                         .WithMany("Images")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ECommerceClothing.Models.ProductSize", b =>
@@ -702,8 +762,10 @@ namespace ECommerceClothing.Migrations
             modelBuilder.Entity("ECommerceClothing.Models.ProductType", b =>
                 {
                     b.HasOne("ECommerceClothing.Models.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .WithMany("ProductTypes")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
                 });
@@ -713,7 +775,7 @@ namespace ECommerceClothing.Migrations
                     b.HasOne("ECommerceClothing.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ECommerceClothing.Models.Product", "Product")
@@ -722,9 +784,28 @@ namespace ECommerceClothing.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ECommerceClothing.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ECommerceClothing.Models.UserAddress", b =>
+                {
+                    b.HasOne("ECommerceClothing.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -778,9 +859,14 @@ namespace ECommerceClothing.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ECommerceClothing.Models.AppUser", b =>
+                {
+                    b.Navigation("CartItems");
+                });
+
             modelBuilder.Entity("ECommerceClothing.Models.Category", b =>
                 {
-                    b.Navigation("Products");
+                    b.Navigation("ProductTypes");
                 });
 
             modelBuilder.Entity("ECommerceClothing.Models.Order", b =>
@@ -793,6 +879,16 @@ namespace ECommerceClothing.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("ProductSizes");
+                });
+
+            modelBuilder.Entity("ECommerceClothing.Models.ProductType", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("ECommerceClothing.Models.Voucher", b =>
+                {
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

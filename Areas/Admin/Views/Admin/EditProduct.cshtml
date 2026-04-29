@@ -4,147 +4,119 @@
     ViewData["Title"] = "Edit Product";
 }
 
-<style>
-    .image-container {
-        position: relative;
-        display: inline-block;
-        width: 100px;
-        height: 100px;
-        margin-right: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .btn-delete-image {
-        position: absolute;
-        top: 0;
-        right: 0;
-        background-color: rgba(220, 53, 69, 0.8);
-        color: white;
-        border: none;
-        width: 24px;
-        height: 24px;
-        text-align: center;
-        line-height: 24px;
-        font-weight: bold;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-        border-bottom-left-radius: 4px;
-    }
-
-    .image-container:hover .btn-delete-image {
-        opacity: 1;
-    }
-
-    .btn-delete-image:hover {
-        background-color: rgb(220, 53, 69);
-    }
-</style>
-
 <div class="container mt-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">Edit Product: @Model.Name</h5>
+    <div class="card shadow-sm border-0 rounded-3">
+
+        <div class="card-header custom-card-header">
+            <h5 class="mb-0 custom-header-title">Edit Product: @Model.Name</h5>
         </div>
 
-        <div class="card-body bg-light">
-            <form asp-area="Admin" asp-controller="Admin" asp-action="EditProduct" method="post" enctype="multipart/form-data">
+        <div class="card-body bg-white p-4">
+            <form asp-area="Admin" asp-controller="Admin" asp-action="EditProduct" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="Id" />
                 <input type="hidden" asp-for="CreatedAt" />
                 <div id="deletedImagesContainer"></div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Product Name</label>
-                    <input asp-for="Name" class="form-control" required />
-                    <span asp-validation-for="Name" class="text-danger small"></span>
-                </div>
-
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Category</label>
-                        <select asp-for="CategoryId" class="form-select"
-                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))"
-                                id="CategorySelect">
+                        <label class="form-label">Product Name</label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Category</label>
+                        <select name="SelectedCategoryId" class="form-select"
+                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name", ViewBag.SelectedCategoryId))"
+                                id="CategorySelect" required>
                             <option value="">Select Category</option>
                         </select>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Product Type</label>
+                    <div class="col-md-3">
+                        <label class="form-label">Product Type</label>
                         <select asp-for="ProductTypeId" class="form-select"
                                 asp-items="@(new SelectList(ViewBag.ProductTypes, "ProductTypeId", "Name"))"
-                                id="TypeSelect">
+                                id="TypeSelect" required>
                             <option value="">Select Type</option>
                         </select>
+                        <span asp-validation-for="ProductTypeId" class="text-danger small"></span>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Price</label>
-                        <input asp-for="Price" type="number" class="form-control" />
-
-                        @* Giữ lại hidden này để tránh lỗi Model *@
-                        <input type="hidden" asp-for="Stock" />
-                        <input type="hidden" asp-for="Size" id="SizeInput" />
+                        <label class="form-label">Price</label>
+                        <input asp-for="Price" type="number" class="form-control" min="1" required
+                               oninput="if(this.value !== '' && this.value < 1) this.value = '';" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Phân loại Size & Số lượng tồn kho</label>
-                        <div class="p-3 border rounded bg-white">
-                            <div class="row">
-                                @{
-                                    string[] allSizes = { "S", "M", "L", "XL" };
-                                    foreach (var sName in allSizes)
-                                    {
-                                        // Tìm xem sản phẩm hiện tại đã có size này trong kho chưa
-                                        var existingSize = Model.ProductSizes?.FirstOrDefault(x => x.SizeName == sName);
-                                        bool isChecked = existingSize != null;
-                                        int qty = existingSize?.Quantity ?? 0;
+                        @{
+                            var freeSizeRecord = Model.ProductSizes?.FirstOrDefault(x => x.SizeName == "Free Size");
+                            bool isFreeSize = freeSizeRecord != null;
+                            int freeSizeQty = freeSizeRecord?.Quantity ?? 0;
+                        }
 
-                                        <div class="col-md-6 mb-3">
-                                            <div class="size-item d-flex align-items-center">
-                                                <div class="form-check me-2" style="width: 50px;">
-                                                    <input class="form-check-input size-checkbox" type="checkbox"
-                                                           value="@sName" id="size@sName" name="SelectedSizes"
-                                                           @(isChecked ? "checked" : "")>
-                                                    <label class="form-check-label fw-bold" for="size@sName">@sName</label>
+                        <div id="sizeSection" style="display: @(isFreeSize ? "none" : "block")">
+                            <label class="form-label">Inventory quantity (by Size)</label>
+
+                            <div class="p-3 border rounded bg-white" style="border-color: #cbd5e1 !important;">
+                                <div class="row">
+                                    @{
+                                        string[] allSizes = { "S", "M", "L", "XL" };
+                                        foreach (var sName in allSizes)
+                                        {
+                                            var existingSize = Model.ProductSizes?.FirstOrDefault(x => x.SizeName == sName);
+                                            bool isChecked = existingSize != null;
+                                            int qty = existingSize?.Quantity ?? 0;
+
+                                            <div class="col-md-6 mb-3">
+                                                <div class="size-item d-flex align-items-center">
+                                                    <div class="form-check me-2" style="width: 50px;">
+                                                        <input class="form-check-input size-checkbox" type="checkbox"
+                                                               value="@sName" id="size@sName" name="SelectedSizes"
+                                                               @(isChecked && !isFreeSize ? "checked" : "")>
+                                                        <label class="form-check-label fw-bold" for="size@sName">@sName</label>
+                                                    </div>
+                                                    <input type="number" name="SelectedQuantities"
+                                                           class="form-control form-control-sm stock-input @(isChecked && !isFreeSize ? "" : "d-none")"
+                                                           placeholder="Quantity..." min="1"
+                                                           value="@(isChecked && !isFreeSize ? qty.ToString() : "")"
+                                                           @(isChecked && !isFreeSize ? "required" : "disabled")
+                                                           oninput="if(this.value !== '' && this.value < 1) this.value = '';">
                                                 </div>
-                                                <input type="number" name="SelectedQuantities"
-                                                       class="form-control form-control-sm stock-input @(isChecked ? "" : "d-none")"
-                                                       placeholder="Số lượng..." min="0"
-                                                       value="@(isChecked? qty.ToString() : "")"
-                                                       @(isChecked ? "" : "disabled")>
                                             </div>
-                                        </div>
+                                        }
                                     }
-                                }
+                                </div>
                             </div>
+                            <small class="text-muted mt-1 d-block">Edit the quantity or select a new size.</small>
                         </div>
-                        <small class="text-muted">Chỉnh sửa số lượng hoặc tick chọn size mới.</small>
+
+                        <div id="noSizeSection" style="display: @(isFreeSize ? "block" : "none")">
+                            <label class="form-label">Stock (Free Size)</label>
+                            <input type="hidden" name="SelectedSizes" value="Free Size" class="no-size-input" @(isFreeSize ? "" : "disabled") />
+                            <input type="number" name="SelectedQuantities" id="ActualStockInput" class="form-control no-size-input" min="1"
+                                   value="@(isFreeSize? freeSizeQty.ToString() : "")"
+                                   @(isFreeSize ? "required" : "disabled")
+                                   oninput="if(this.value !== '' && this.value < 1) this.value = '';">
+                        </div>
+                        <span id="stock-error-msg" class="text-danger small fw-bold d-block mt-1"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Current Images (Hover to delete)</label>
+                    <label class="form-label">Current Images</label>
                     <div class="d-flex gap-2 flex-wrap">
                         @if (Model.Images != null && Model.Images.Count > 0)
                         {
                             foreach (var img in Model.Images)
                             {
                                 <div class="image-container" data-image-id="@img.Id">
-                                    <img src="@img.ImageUrl" />
-                                    <button type="button" class="btn-delete-image">×</button>
+                                    <img src="@img.ImageUrl" style="max-height: 100px; width: auto;" />
+                                    <button type="button" class="btn-delete-image btn btn-sm btn-danger mt-1">×</button>
                                 </div>
                             }
                         }
@@ -152,83 +124,238 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-success fw-bold">+ Add More Images</label>
-                    <input type="file" name="images" multiple class="form-control" accept="image/*" />
+                    <label class="form-label">Add New Images</label>
+                    <input type="file" id="productImagesInput" name="images" multiple class="form-control" accept="image/*" />
+                    <span class="text-danger small fw-bold">@Html.ValidationMessage("Images")</span>
+                    <div id="imagePreviewContainer" class="d-flex gap-2 flex-wrap mt-3"></div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Description</label>
-                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <label class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <a asp-area="Admin" asp-controller="Admin" asp-action="Products" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-dark">Save Changes</button>
+                <div class="d-flex justify-content-end gap-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                    <a asp-area="Admin" asp-controller="Admin" asp-action="Products" class="btn-custom-cancel">Cancel</a>
+                    <button type="submit" class="btn-custom-new">Save</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // 1. Dropdown Category -> Type
-        document.getElementById('CategorySelect').addEventListener('change', function() {
-            var categoryId = this.value;
-            var typeSelect = document.getElementById('TypeSelect');
-            typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
-            if (categoryId) {
-                fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        data.forEach(item => {
-                            var opt = new Option(item.name, item.id);
-                            typeSelect.add(opt);
-                        });
-                    });
-            }
-        });
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 
-        // 2. Xử lý Ẩn/Hiện ô nhập Stock theo Size
-        const checkboxes = document.querySelectorAll('.size-checkbox');
-        const hiddenSizeInput = document.getElementById('SizeInput');
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-        checkboxes.forEach(chk => {
-            chk.addEventListener('change', function() {
-                const qtyInput = this.closest('.size-item').querySelector('.stock-input');
-                if (this.checked) {
-                    qtyInput.classList.remove('d-none');
-                    qtyInput.disabled = false;
-                    qtyInput.required = true;
+            const categorySelect = document.getElementById("CategorySelect");
+            const sizeSection = document.getElementById("sizeSection");
+            const noSizeSection = document.getElementById("noSizeSection");
+            const stockSingleInput = document.getElementById('ActualStockInput');
+            const checkboxes = document.querySelectorAll('.size-checkbox');
+            const hiddenSizeInput = document.getElementById('SizeInput');
+
+            function toggleStockInput() {
+                if (categorySelect.selectedIndex === -1) return;
+
+                const selectedText = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+
+                if (selectedText.includes("accessories")) {
+                    sizeSection.style.display = "none";
+                    noSizeSection.style.display = "block";
+                    sizeSection.querySelectorAll('input').forEach(i => i.disabled = true);
+                    if(stockSingleInput) stockSingleInput.disabled = false;
+
                 } else {
-                    qtyInput.classList.add('d-none');
-                    qtyInput.disabled = true;
-                    qtyInput.required = false;
-                    qtyInput.value = '';
+                    sizeSection.style.display = "block";
+                    noSizeSection.style.display = "none";
+                    if(stockSingleInput) stockSingleInput.disabled = true;
+
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                        const qtyInput = cb.closest('.size-item').querySelector('.stock-input');
+                        if (cb.checked) {
+                            qtyInput.disabled = false;
+                            qtyInput.classList.remove('d-none');
+                        } else {
+                            qtyInput.disabled = true;
+                            qtyInput.classList.add('d-none');
+                        }
+                    });
                 }
-                updateSizeString();
+            }
+
+            categorySelect.addEventListener("change", toggleStockInput);
+            toggleStockInput();
+
+            categorySelect.addEventListener('change', function() {
+                var categoryId = this.value;
+                var typeSelect = document.getElementById('TypeSelect');
+                typeSelect.innerHTML = '<option value="">Select Type</option>';
+                if (categoryId) {
+                    fetch(`/Admin/Admin/GetProductTypesByCategory?categoryId=${categoryId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            data.forEach(item => {
+                                var opt = new Option(item.name, item.id);
+                                typeSelect.add(opt);
+                            });
+                        });
+                }
             });
-        });
 
-        function updateSizeString() {
-            const checked = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
-            hiddenSizeInput.value = checked.join(',');
-        }
+            function updateSizeString() {
+                const checked = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+                if(hiddenSizeInput) hiddenSizeInput.value = checked.join(',');
+            }
 
-        // 3. Xử lý xóa ảnh cũ
-        const deletedImagesContainer = document.getElementById('deletedImagesContainer');
-        document.querySelectorAll('.btn-delete-image').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const container = this.closest('.image-container');
-                const imageId = container.getAttribute('data-image-id');
-                container.remove();
-
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'deletedImageIds';
-                input.value = imageId;
-                deletedImagesContainer.appendChild(input);
+            checkboxes.forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const qtyInput = this.closest('.size-item').querySelector('.stock-input');
+                    if (this.checked) {
+                        qtyInput.classList.remove('d-none');
+                        qtyInput.disabled = false;
+                        qtyInput.required = true;
+                    } else {
+                        qtyInput.classList.add('d-none');
+                        qtyInput.disabled = true;
+                        qtyInput.required = false;
+                        qtyInput.value = '';
+                    }
+                    updateSizeString();
+                });
             });
-        });
-    });
-</script>
+            updateSizeString();
+
+            //Xử lý tương tác xóa ảnh cũ
+            const deletedImagesContainer = document.getElementById('deletedImagesContainer');
+            document.querySelectorAll('.btn-delete-image').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const container = this.closest('.image-container');
+                    const imageId = container.getAttribute('data-image-id');
+                    container.remove();
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'deletedImageIds';
+                    input.value = imageId;
+                    deletedImagesContainer.appendChild(input);
+                });
+            });
+
+            const fileInput = document.getElementById('productImagesInput');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            let dt = new DataTransfer();
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    let hasInvalidFile = false;
+                    for(let i = 0; i < this.files.length; i++) {
+                        const file = this.files[i];
+                        if (file.type.startsWith('image/')) {
+                            let isDuplicate = false;
+                            for(let j = 0; j < dt.files.length; j++) {
+                                if (dt.files[j].name === file.name && dt.files[j].size === file.size) {
+                                    isDuplicate = true; break;
+                                }
+                            }
+                            if (!isDuplicate) dt.items.add(file);
+                        } else {
+                            hasInvalidFile = true;
+                        }
+                    }
+                    if (hasInvalidFile) alert('Invalid format! Only images are allowed.');
+                    fileInput.files = dt.files;
+                    renderNewPreviews();
+                });
+            }
+
+            function renderNewPreviews() {
+                if(!previewContainer) return;
+                previewContainer.innerHTML = '';
+                Array.from(dt.files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'image-container';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn-delete-image';
+                        btn.innerHTML = '&times;';
+                        btn.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            removeNewPreviewFile(index);
+                        });
+                        div.appendChild(img);
+                        div.appendChild(btn);
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function removeNewPreviewFile(indexToRemove) {
+                const newDt = new DataTransfer();
+                for(let i = 0; i < dt.files.length; i++) {
+                    if (i !== indexToRemove) newDt.items.add(dt.files[i]);
+                }
+                dt = newDt;
+                if(fileInput) fileInput.files = dt.files;
+                renderNewPreviews();
+            }
+
+            //check lỗi trc khi submit
+            const form = document.querySelector('form');
+
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+
+                    const descInput = document.querySelector('textarea[name="Description"]');
+                    const descErrorSpan = document.querySelector('span[data-valmsg-for="Description"]');
+
+                    if (descInput && descInput.value.trim() === "") {
+                        if (descErrorSpan) descErrorSpan.innerHTML = "Please enter a product description (it must not contain only spaces).";
+                        hasError = true;
+                    } else {
+                        if (descErrorSpan) descErrorSpan.innerHTML = "";
+                    }
+
+                    const stockErrorSpan = document.getElementById('stock-error-msg');
+
+                    if (categorySelect && categorySelect.selectedIndex > 0) {
+                        const selectedText = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+                        let totalStock = 0;
+
+                        if (selectedText.includes("accessories")) {
+                            const stockInput = document.getElementById('ActualStockInput');
+                            if(stockInput && !stockInput.disabled) totalStock = parseInt(stockInput.value) || 0;
+                        } else {
+                            const checkedBoxes = document.querySelectorAll('.size-checkbox:checked');
+                            checkedBoxes.forEach(cb => {
+                                const qtyInput = cb.closest('.size-item').querySelector('.stock-input');
+                                if(qtyInput && !qtyInput.disabled) totalStock += parseInt(qtyInput.value) || 0;
+                            });
+                        }
+
+                        if (totalStock <= 0) {
+                            if (stockErrorSpan) stockErrorSpan.innerHTML = "Inventory quantity must be at least 1. You must enter a quantity to create this product.";
+                            hasError = true;
+                        } else {
+                            if (stockErrorSpan) stockErrorSpan.innerHTML = "";
+                        }
+                    }
+
+                    if (hasError) {
+                        event.preventDefault();
+                    }
+                });
+            }
+        }); 
+    </script>
+}

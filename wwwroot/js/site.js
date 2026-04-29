@@ -1,4 +1,4 @@
-﻿// Hàm Toggle Password (ẩn/hiện mật khẩu)
+﻿// Hàm Toggle Password 
 function togglePassword(inputId, el) {
     const input = document.getElementById(inputId);
     const icon = el.querySelector("i");
@@ -112,25 +112,20 @@ window.updateCartQty = function (id, size, change) {
 };
 
 
-// ==========================================
-// PHẦN 2: LOGIC MỚI (QUICK VIEW & BUY NOW)
-// ==========================================
+// QUICK VIEW & BUY NOW
 
 document.addEventListener("DOMContentLoaded", function () {
     const ALL_SIZES = ['S', 'M', 'L', 'XL'];
     let currentProductSizes = [];
 
-    // --- A. BẮT SỰ KIỆN CLICK TOÀN TRANG (Event Delegation) ---
-    document.body.addEventListener('click', function (e) {
-        // 1. Logic cho nút "ADD TO CART"
+    document.body.addEventListener('click', function (e) { 
         const btnAdd = e.target.closest('.btn-quick-view');
         if (btnAdd) {
             e.preventDefault();
             const id = btnAdd.getAttribute('data-id');
             openQuickView(id, false);
         }
-
-        // 2. Logic cho nút "MUA NGAY"
+         
         const btnBuyNow = e.target.closest('.btn-buy-now-trigger');
         if (btnBuyNow) {
             e.preventDefault();
@@ -139,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- B. HÀM MỞ POPUP (Xử lý giao diện Modal) ---
+    // Xử lý giao diện Modal
     function openQuickView(id, isBuyNowMode) {
         const modalEl = document.getElementById('quickViewModal');
         const modalBody = document.getElementById('quickViewContent');
@@ -154,17 +149,13 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 currentProductSizes = data.sizes || [];
-
-                // 👉 ĐÃ FIX: Logic xử lý vẽ nút Size (CÓ QUẢN LÝ TÚI/NÓN)
                 let sizeHtml = '';
                 let sizeHeaderHtml = '';
 
-                if (data.categoryId == 3) {
-                    // Categoty Accessories (ID = 3) -> Chế độ ONE SIZE
+                if (data.categoryId == 15) {
                     sizeHeaderHtml = `<label class="fw-bold small text-uppercase text-muted mb-0">Size</label>`;
                     sizeHtml = `<div class="btn-size-qv active bg-dark text-white px-3" style="width: auto;">ONE SIZE</div>`;
 
-                    // Gán tự động ở background
                     setTimeout(() => {
                         const firstAvailable = currentProductSizes.find(x => x.qty > 0);
                         const hiddenSizeVal = firstAvailable ? firstAvailable.name : 'One Size';
@@ -172,7 +163,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.getElementById('qvCurrentMaxStock').value = data.stock;
                     }, 100);
                 } else {
-                    // Quần Áo Bình Thường -> Hiện 4 size
                     sizeHeaderHtml = `
                         <label class="fw-bold small text-uppercase text-muted mb-0">Size</label>
                         <a href="javascript:void(0)" 
@@ -193,15 +183,34 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 }
 
-                // Nút bấm
                 let actionButtonHtml = '';
-                if (isBuyNowMode) {
-                    actionButtonHtml = `<button class="btn-add-cart-qv w-100" onclick="processCheckoutGlobal(${data.id})">CHECKOUT</button>`;
-                } else {
-                    actionButtonHtml = `<button class="btn-add-cart-qv w-100" onclick="addToCartGlobal(${data.id})">ADD TO CART</button>`;
+
+                if (isCurrentUserAdmin) {
+                    actionButtonHtml = `
+                    <div class="d-flex gap-2 w-100">
+                        <button class="btn-add-cart-qv w-100" disabled style="opacity:0.5; cursor:not-allowed;" title="Admin cannot purchase products">
+                            <i class="fa-solid fa-ban me-2"></i> ADD TO CART
+                        </button>
+                    </div>`;
+                }
+                else if (data.stock <= 0) {
+                    actionButtonHtml = `<button class="btn-add-cart-qv w-100" disabled style="opacity:0.5; cursor:not-allowed;">
+                                    OUT OF STOCK
+                                    </button>`;
+                }
+                else {
+                    if (isBuyNowMode) {
+                        actionButtonHtml = `<button class="btn-add-cart-qv w-100" onclick="processCheckoutGlobal(${data.id})">
+                                CHECKOUT
+                            </button>`;
+                    } else {
+                        actionButtonHtml = `<button class="btn-add-cart-qv w-100" onclick="addToCartGlobal(${data.id})">
+                                ADD TO CART
+                                </button>`;
+                    }
                 }
 
-                // Vẽ HTML vào Modal
+                // Them product nhanh
                 modalBody.innerHTML = `
                 <div class="row g-0">
                     <div class="col-md-6">
@@ -216,7 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         <h4 class="fw-bold text-uppercase mb-1" style="font-size: 1.4rem;">${data.name}</h4>
                         <div class="fs-4 fw-bold mb-1 text-danger">${(data.price * 1000).toLocaleString()} VND</div>
                     
-                        <div class="text-muted small mb-4 fw-bold" id="qvStockDisplay">Stock: ${data.stock}</div>
+                        <div class="text-muted small mb-4 fw-bold" id="qvStockDisplay">
+                            ${data.stock <= 0 ? "Out of stock" : "Stock: " + data.stock}
+                        </div>
                     
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             ${sizeHeaderHtml} 
@@ -256,9 +267,8 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // --- C. CÁC HÀM HỖ TRỢ ---
 
-    // 1. Chọn Size 
+    // Chọn Size 
     window.selectSizeGlobal = function (btn, sizeName, maxStock) {
         document.querySelectorAll('.btn-size-qv').forEach(b => b.classList.remove('active', 'bg-dark', 'text-white'));
         btn.classList.add('active', 'bg-dark', 'text-white');
@@ -277,11 +287,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (errorMsg) errorMsg.style.display = 'none';
     }
 
-    // 2. Tăng giảm số lượng 
+    // Tăng giảm số lượng 
     window.changeQtyGlobal = function (change) {
         const sizeSelected = document.getElementById('qvSelectedSize').value;
         if (!sizeSelected && change > 0) {
-            alert("Vui lòng chọn Size trước!");
+            const errorDiv = document.getElementById("qvSizeError");
+            if (errorDiv) {
+                errorDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> Please select a size first!';
+                errorDiv.style.display = "block";
+            }
             return;
         }
 
@@ -291,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (val < 1) val = 1;
         if (val > maxStock) {
-            alert(`Size này chỉ còn tối đa ${maxStock} sản phẩm!`);
+            alert(`This size has a maximum of ${maxStock} products remaining!`);
             val = maxStock;
         }
 
@@ -328,7 +342,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // 👉 ĐÃ FIX: Thêm lệnh return để ngắt hàm nếu chưa chọn size
     function validateAndSubmit(id, callback) {
         const size = document.getElementById('qvSelectedSize').value;
         const errorMsg = document.getElementById('qvSizeError');
@@ -341,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }
                 ], { duration: 300 });
             }
-            return; // Dừng lại ngay lập tức
+            return; 
         }
 
         submitCartData(id, callback);
@@ -356,11 +369,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    //window.processCheckoutGlobal = function (id) {
-    //    validateAndSubmit(id, function () {
-    //        window.location.href = '/Checkout';
-    //    });
-    //}
     window.processCheckoutGlobal = function (id) {
         const size = document.getElementById('qvSelectedSize').value;
         const qty = document.getElementById('qvQtyInput').value;
@@ -369,7 +377,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('qvSizeError').style.display = 'block';
             return;
         }
-        // Bay thẳng qua Checkout, không thông qua API giỏ hàng
         window.location.href = `/Checkout?buyNowId=${id}&size=${size}&qty=${qty}`;
     }
 
@@ -385,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch('/Cart/AddToCartAjax', { method: 'POST', body: formData })
             .then(res => res.json())
             .then(data => {
-                // 👉 ĐÃ FIX: CHỐT CHẶN Ở ĐÂY - Chưa đăng nhập thì bế qua trang Login
                 if (data.notLoggedIn) {
                     var currentUrl = window.location.pathname + window.location.search;
                     window.location.href = '/Account/Login?ReturnUrl= ' + encodeURIComponent(currentUrl);
@@ -395,7 +401,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.success) {
                     onSuccess();
                 } else {
-                    // C# báo lỗi hoặc hết hàng thì báo ra đây
                     alert("Error: " + (data.msg || "Cannot add to cart!"));
                 }
             })

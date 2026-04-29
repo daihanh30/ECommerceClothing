@@ -1,125 +1,118 @@
 ﻿@model ECommerceClothing.Models.Voucher
 @{
     ViewData["Title"] = "Create Voucher";
-    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml"; // Kiểm tra lại đúng đường dẫn Layout của bạn nhé
+    Layout = "/Areas/Admin/Views/Admin/_AdminLayout.cshtml"; 
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Create New Voucher</h2>
-    <a asp-action="Vouchers" class="btn btn-outline-secondary px-3">
-        <i class="bi bi-arrow-left"></i> Back to List
-    </a>
+    <h2 class="fw-bold mb-0" style="color: #1e293b;">Create New Voucher</h2>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body bg-white p-4">
         <form asp-action="CreateVoucher" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="row g-3 mb-3">
+            <div class="row g-4 mb-4">
                 <div class="col-md-6">
-                    <label asp-for="Code" class="form-label fw-bold">Promo Code <span class="text-danger">*</span></label>
+                    <label asp-for="Code" class="form-label">Promo Code <span class="text-danger">*</span></label>
                     <input asp-for="Code" class="form-control text-uppercase" placeholder="e.g. FREESHIP, SUMMER20" required />
                     <span asp-validation-for="Code" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="Title" class="form-label fw-bold">Title</label>
+                    <label asp-for="Title" class="form-label">Title</label>
                     <input asp-for="Title" class="form-control" placeholder="e.g. 20% Off for Summer" required />
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Description" class="form-label fw-bold">Description</label>
+            <div class="mb-4">
+                <label asp-for="Description" class="form-label">Description</label>
                 <textarea asp-for="Description" class="form-control" rows="2" placeholder="Brief details about this voucher..."></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
-            <div class="row g-3 mb-3">
+            <div class="row g-4 mb-4">
                 <div class="col-md-4">
-                    <label asp-for="Type" class="form-label fw-bold">Discount Type</label>
+                    <label asp-for="Type" class="form-label">Discount Type</label>
                     <select asp-for="Type" class="form-select">
                         <option value="Percent">Percentage (%)</option>
                         <option value="Fixed">Fixed Amount (₫)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="Value" class="form-label fw-bold">Value</label>
+                    <label asp-for="Value" class="form-label">Value</label>
                     <input asp-for="Value" type="number" step="0.01" class="form-control" placeholder="e.g. 0.1 (10%) or 50000" required />
                     <span asp-validation-for="Value" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="MaxReduce" class="form-label fw-bold">Max Discount (₫)</label>
-                    @* Ô ảo hiển thị đẹp *@
+                    <label asp-for="MaxReduce" class="form-label">Max Discount (₫)</label>
                     <input type="text" class="form-control" value="@(Model?.MaxReduce > 0 ? Model.MaxReduce.ToString("#,##0") : "")" placeholder="e.g. 100" oninput="formatMoney(this, 'RealMaxReduce')" required />
-
-                    @* 👉 ĐÃ FIX: Gán cứng id="RealMaxReduce" cho thẻ ẩn *@
                     <input type="hidden" id="RealMaxReduce" name="MaxReduce" value="@(Model?.MaxReduce)" />
                     <span asp-validation-for="MaxReduce" class="text-danger"></span>
                 </div>
             </div>
 
-            <div class="row g-3 mb-3">
-               
+            <div class="row g-4 mb-4">
                 <div class="col-md-4">
-                    <label asp-for="MinOrder" class="form-label fw-bold">Min Order Value (₫)</label>
-                    @* Ô ảo hiển thị đẹp *@
+                    <label asp-for="MinOrder" class="form-label">Min Order Value (₫)</label>
                     <input type="text" class="form-control" value="@(Model?.MinOrder > 0 ? Model.MinOrder.ToString("#,##0") : "")" placeholder="e.g. 500" oninput="formatMoney(this, 'RealMinOrder')" required />
-
-                    @* 👉 ĐÃ FIX: Gán cứng id="RealMinOrder" cho thẻ ẩn *@
                     <input type="hidden" id="RealMinOrder" name="MinOrder" value="@(Model?.MinOrder)" />
                     <span asp-validation-for="MinOrder" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="Quantity" class="form-label fw-bold">Total Quantity</label>
+                    <label asp-for="Quantity" class="form-label">Total Quantity</label>
                     <input asp-for="Quantity" type="number" class="form-control" placeholder="Total vouchers available" required />
                     <span asp-validation-for="Quantity" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="UsageLimitPerUser" class="form-label fw-bold">Usage Limit Per User</label>
+                    <label asp-for="UsageLimitPerUser" class="form-label">Usage Limit Per User</label>
                     <input asp-for="UsageLimitPerUser" type="number" class="form-control" value="1" required />
                     <span asp-validation-for="UsageLimitPerUser" class="text-danger"></span>
                 </div>
             </div>
 
-            <div class="row g-3 mb-4">
+            <div class="row g-4 mb-4">
                 <div class="col-md-6">
-                    <label asp-for="StartDate" class="form-label fw-bold">Start Date</label>
+                    <label asp-for="StartDate" class="form-label">Start Date</label>
                     <input asp-for="StartDate" type="datetime-local" class="form-control" required />
                     <span asp-validation-for="StartDate" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="EndDate" class="form-label fw-bold">End Date</label>
+                    <label asp-for="EndDate" class="form-label">End Date</label>
                     <input asp-for="EndDate" type="datetime-local" class="form-control" required />
                     <span asp-validation-for="EndDate" class="text-danger"></span>
                 </div>
             </div>
 
-            <div class="row mb-4 bg-light p-3 rounded">
+            <div class="row g-4 mb-5">
                 <div class="col-md-6">
-                    <div class="form-check form-switch">
-                        <input asp-for="IsPublic" class="form-check-input" type="checkbox" checked id="switchPublic">
-                        <label class="form-check-label fw-bold ms-2" for="switchPublic">
-                            Public Voucher <br>
-                            <small class="text-muted fw-normal">Show in Checkout list (Uncheck for Hidden code)</small>
-                        </label>
+                    <div class="switch-box d-flex align-items-center">
+                        <div class="form-check form-switch mb-0">
+                            <input asp-for="IsPublic" class="form-check-input" type="checkbox" checked id="switchPublic">
+                            <label class="form-check-label fw-bold ms-2 text-dark" for="switchPublic">
+                                Public Voucher <br>
+                                <small class="text-muted fw-normal">Show in Checkout list</small>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-check form-switch">
-                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked id="switchActive">
-                        <label class="form-check-label fw-bold ms-2" for="switchActive">
-                            Status: Active <br>
-                            <small class="text-muted fw-normal">Allow users to apply this code</small>
-                        </label>
+                    <div class="switch-box d-flex align-items-center">
+                        <div class="form-check form-switch mb-0">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked id="switchActive">
+                            <label class="form-check-label fw-bold ms-2 text-dark" for="switchActive">
+                                Status: Active <br>
+                                <small class="text-muted fw-normal">Allow users to apply</small>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <hr class="text-muted">
-            <div class="d-flex justify-content-end gap-2 mt-3">
-                <a asp-action="Vouchers" class="btn btn-light px-4">Cancel</a>
-                <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #198754;">Save Voucher</button>
+            <div class="d-flex justify-content-end gap-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                <a asp-action="Vouchers" class="btn btn-custom-cancel">Cancel</a>
+                <button type="submit" class="btn btn-custom-new">Save</button>
             </div>
         </form>
     </div>
@@ -131,13 +124,10 @@
     }
     <script>
         function formatMoney(inputDisplay, hiddenInputId) {
-            // Lọc chỉ lấy số
             let rawValue = inputDisplay.value.replace(/[^0-9]/g, '');
 
-            // Gán số thô vào thẻ ẩn (Dùng ID truyền từ trên xuống)
             document.getElementById(hiddenInputId).value = rawValue;
 
-            // Format có dấu phẩy hiện ra ngoài
             inputDisplay.value = rawValue ? parseInt(rawValue, 10).toLocaleString('en-US') : '';
         }
     </script>

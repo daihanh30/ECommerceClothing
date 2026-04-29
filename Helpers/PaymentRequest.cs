@@ -34,14 +34,13 @@ namespace ECommerceClothing.Helpers
                 }
             }
             catch (WebException e)
-            {
-                // 🔥 ĐOẠN QUAN TRỌNG: Đọc nội dung lỗi 400 chi tiết từ MoMo
+            { 
                 if (e.Response != null)
                 {
                     using (var stream = e.Response.GetResponseStream())
                     using (var reader = new StreamReader(stream))
                     {
-                        return reader.ReadToEnd(); // Trả về JSON lỗi của MoMo (Ví dụ: {"message":"Signature mismatch"})
+                        return reader.ReadToEnd();  
                     }
                 }
                 return e.Message;

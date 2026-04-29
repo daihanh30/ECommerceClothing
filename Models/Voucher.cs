@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 
 namespace ECommerceClothing.Models
 {
@@ -9,27 +10,42 @@ namespace ECommerceClothing.Models
         [Key]
         public int Id { get; set; }
 
-        [Required, MaxLength(50)]
-        public string Code { get; set; } // Mã nhập (VD: FREESHIP, HELLO)
+        [Required(ErrorMessage = "Please enter Voucher code")]
+        [MaxLength(50)]
+        public string Code { get; set; }
 
-        public string Title { get; set; } // Tên hiển thị (VD: Giảm 10%)
-        public string Description { get; set; } // Mô tả chi tiết
+        [Required(ErrorMessage = "Please enter a display name")]
+        public string Title { get; set; }
+        public string Description { get; set; }
 
-        public string Type { get; set; } // "Percent" (Phần trăm) hoặc "Fixed" (Tiền mặt)
+        public string Type { get; set; } 
 
+        [Range(0, double.MaxValue, ErrorMessage = "Decreased value cannot be negative")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Value { get; set; } // Giá trị giảm (VD: 0.1 cho 10%, hoặc 20000 cho 20k)
-        public decimal MaxReduce { get; set; } // Số tiền giảm tối đa
-        public decimal MinOrder { get; set; } // Giá trị đơn hàng tối thiểu
+        public decimal Value { get; set; }
 
-        public int Quantity { get; set; } // Tổng số lượng mã phát ra phát ra
-        public int UsedCount { get; set; } = 0; // Đã dùng bao nhiêu lượt (Thêm mới)
-        public int UsageLimitPerUser { get; set; } = 1; // Số lần 1 user được dùng (thường là 1)
+        [Range(0, double.MaxValue, ErrorMessage = "Maximum discount amount cannot be negative")]
+        public decimal MaxReduce { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "Minimum order value cannot be negative")]
+        public decimal MinOrder { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity issued must be 1 or more")]
+        public int Quantity { get; set; }
+
+        public int UsedCount { get; set; } = 0;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Limit per user must be 1 or more")]
+        public int UsageLimitPerUser { get; set; } = 1;
+
+        [Required]
         public DateTime StartDate { get; set; }
+
+        [Required]
         public DateTime EndDate { get; set; }
 
-        public bool IsPublic { get; set; } = true; // True = Public (hiện ở giỏ hàng), False = Hidden (phải nhập tay)
+        public bool IsPublic { get; set; } = true;
         public bool IsActive { get; set; } = true;
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

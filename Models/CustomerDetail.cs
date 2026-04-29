@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ECommerceClothing.Models;
 
-namespace ECommerceClothing.ViewModels // Vẫn giữ namespace này để biết nó chứa dữ liệu đẩy ra View
+namespace ECommerceClothing.ViewModels 
 {
     public class CustomerDetail
     {

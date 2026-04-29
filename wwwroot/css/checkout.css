@@ -1,11 +1,10 @@
-﻿/* =========================================
-   1. GLOBAL & POPUP MODAL
-   ========================================= */
+﻿ 
+/*POPUP*/
+ 
 body {
-    background-color: #f4f6f8; /* Màu nền xám nhẹ */
+    background-color: #f4f6f8;  
 }
-
-/* Nút trong Popup Modal Trang chủ */
+ 
 .btn-checkout-modal {
     width: 100%;
     background-color: #dc3545;
@@ -24,8 +23,7 @@ body {
         color: #fff;
         box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
     }
-
-/* Nút Checkout Modal (Màu đen - Theo yêu cầu) */
+     
 .btn-dark-modal {
     width: 100%;
     background-color: #000;
@@ -44,8 +42,7 @@ body {
         background-color: #333;
         color: #fff;
     }
-
-/* Layout Modal Quick View */
+     
 .modal-content {
     border-radius: 0;
     border: none;
@@ -67,8 +64,7 @@ body {
         height: 100%;
         object-fit: cover;
     }
-
-/* Nút chọn Size & Số lượng trong Modal */
+/*button chọn size và sl*/
 .btn-size-qv {
     width: 45px;
     height: 45px;
@@ -133,10 +129,8 @@ body {
         outline: none;
         font-weight: bold;
     }
-
-/* =========================================
-   2. CHECKOUT PAGE (Trang Thanh Toán)
-   ========================================= */
+     
+/*checkout*/
 .checkout-header {
     font-size: 24px;
     font-weight: 800;
@@ -160,8 +154,7 @@ body {
     margin-bottom: 15px;
     color: #333;
 }
-
-/* Form Input */
+ 
 .form-control {
     border-radius: 6px;
     padding: 12px;
@@ -174,8 +167,7 @@ body {
         box-shadow: none;
         border-color: #000;
     }
-
-/* Khung Map Mini */
+     
 .map-placeholder-box {
     width: 100%;
     height: 150px;
@@ -194,8 +186,7 @@ body {
         border-color: #000;
         color: #000;
     }
-
-/* Phương thức thanh toán */
+     
 .payment-method-item {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -219,8 +210,7 @@ body {
     object-fit: contain;
     margin-right: 15px;
 }
-
-/* Giỏ hàng bên phải */
+ 
 .cart-summary-item {
     display: flex;
     align-items: center;
@@ -251,8 +241,7 @@ body {
     font-size: 12px;
     color: #666;
 }
-
-/* Tổng tiền & Đặt hàng */
+ 
 .total-row {
     display: flex;
     justify-content: space-between;
@@ -280,12 +269,7 @@ body {
     .btn-place-order:hover {
         background: #333;
     }
-
-/* =========================================
-   3. VOUCHER SYSTEM (Design mới)
-   ========================================= */
-
-/* Hộp chọn mã (Visual Box) */
+     
 .voucher-select-box {
     border: 1px solid #dee2e6;
     border-radius: 8px;
@@ -298,8 +282,7 @@ body {
     .voucher-select-box:hover {
         border-color: #000;
     }
-
-/* Style Badge Xanh dương (Giảm giá ...) */
+     
 .discount-badge-blue {
     background-color: #e0f3ff;
     color: #007bc4;
@@ -316,8 +299,7 @@ body {
     .discount-badge-blue i {
         margin-right: 5px;
     }
-
-/* Input nhập mã tay & Nút Áp dụng */
+ 
 .h-45 {
     height: 45px !important;
 }
@@ -349,10 +331,8 @@ body {
         background-color: #333 !important;
         transform: translateY(-1px);
     }
-
-/* =========================================
-   4. MODAL VOUCHER LIST (Thẻ Card Voucher)
-   ========================================= */
+     
+/*list voucher*/
 .voucher-card-item {
     display: flex;
     justify-content: space-between;
@@ -371,14 +351,12 @@ body {
         border-color: #000;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
-
-/* Khi được chọn */
+     
 .voucher-radio:checked + .voucher-card-item {
     border: 2px solid #0d6efd;
     background-color: #f8fbff;
 }
-
-/* Nút tròn Radio bên phải */
+ 
 .custom-radio-circle {
     width: 24px;
     height: 24px;
@@ -425,8 +403,7 @@ body {
     color: #dc3545;
     font-weight: 600;
 }
-
-/* Input nhập mã tay & Nút Áp dụng */
+ 
 .h-45 {
     height: 45px;
 }
@@ -436,5 +413,48 @@ body {
     height: 45px;
 }
 .input-voucher-manual {
-    margin-right: 10px; /* ~1cm */
+    margin-right: 10px; 
+}
+ 
+
+.map-loading-overlay
+
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); 
+    display: none;  
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;  
+    border-radius: 8px;
+}
+    .map-loading-overlay.active {
+        display: flex !important;
+    }
+     
+.spinner-hollow {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e0e0e0;
+    border-top: 5px solid #000;  
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+ 
+#miniMap {
+    position: relative;
 }

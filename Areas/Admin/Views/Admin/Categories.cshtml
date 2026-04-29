@@ -5,78 +5,97 @@
     ViewData["Title"] = "Categories";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Manage Categories  </h2>
+<div class="container-fluid px-4 mt-4 mb-5">
+    <div class="mx-auto" style="max-width: 1100px;">
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
-        + New
-    </button>
-</div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0 text-dark">Manage Categories</h2>
+            <button type="button" class="btn btn-confirm px-4" data-bs-toggle="modal" data-bs-target="#createModal">
+                <i class="bi bi-plus-lg me-1"></i> New
+            </button>
+        </div>
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-bordered align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width:80px">ID</th>
-                    <th>Name</th>
-                    <th style="width:220px" class="text-center">Action</th>
-                </tr>
-            </thead>
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr style="letter-spacing: 0.5px;">
+                                <th class="ps-4 py-3 border-0" style="width:100px;">ID</th>
+                                <th class="border-0">Category Name</th>
+                                <th class="text-end pe-4 border-0" style="width:250px;">Action</th>
+                            </tr>
+                        </thead>
 
-            <tbody>
-                @foreach (var c in Model)
-                {
-                    <tr>
-                        <td>@c.Id</td>
-                        <td class="fw-semibold">@c.Name</td>
-                        <td class="text-center">
-                            <div class="d-flex gap-2 justify-content-center">
-                                <button type="button"
-                                        class="btn btn-success btn-sm px-3"
-                                        onclick="openEditModal('@c.Id', '@c.Name')">
-                                    <i class="bi bi-pencil-square"></i> Edit
-                                </button>
+                        <tbody>
+                            @{
+                                int rowIndex = 1;
+                            }
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var c in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-muted">#@rowIndex.ToString("D3")</td>
 
-                                @* <a asp-controller="Category" asp-action="Delete"
-                                   asp-route-id="@c.Id"
-                                   class="btn btn-danger btn-sm px-3"
-                                   onclick="return confirm('Delete this category?')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </a> *@
-                                <button type="button" class="btn btn-danger btn-sm px-3" onclick="deleteConfirm('@c.Id')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                                        <td class="fw-bold text-dark" style="font-size: 15px;">@c.Name</td>
+
+                                        <td class="text-end pe-4">
+                                            <div class="d-flex gap-2 justify-content-end">
+                                                <button type="button" class="btn btn-soft btn-sm px-3" onclick="openEditModal('@c.Id', '@c.Name')">
+                                                    <i class="bi bi-pencil-square me-1"></i> Edit
+                                                </button>
+
+                                                <button type="button" class="btn btn-soft-danger btn-sm px-3" onclick="deleteConfirm('@c.Id')">
+                                                    <i class="bi bi-trash me-1"></i> Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    rowIndex++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted fst-italic">
+                                        <i class="bi bi-tags fs-1 d-block mb-2"></i>
+                                        No categories found. Let's create one!
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">Add Category</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form asp-controller="Category" asp-action="Create" method="post">
+            <form id="createCategoryForm" asp-controller="Category" asp-action="Create" method="post">
                 <div class="modal-body p-4">
                     @Html.AntiForgeryToken()
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Category Name</label>
-                        <input name="Name" class="form-control form-control-lg" placeholder="Enter category name" required />
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Category Name</label>
+                        <input id="create_name" name="Name" class="form-control form-control-lg bg-light border-0" style="font-size: 15px;" placeholder="E.g., T-Shirts, Outerwear..." required />
+                        <small id="error-create-name" class="text-danger d-none mt-2 fw-semibold">
+                            <i class="bi bi-exclamation-circle me-1"></i> Please enter a valid name.
+                        </small>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <a asp-area="Admin" asp-controller="Admin" asp-action="Categories" class="btn btn-secondary">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn btn-dark">Save</button>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-soft px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-confirm px-4">Save</button>
                 </div>
             </form>
         </div>
@@ -86,23 +105,26 @@
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">Edit Category</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form asp-controller="Category" asp-action="Edit" method="post">
+            <form id="editCategoryForm" asp-controller="Category" asp-action="Edit" method="post">
                 <div class="modal-body p-4">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="Id" id="edit_id" />
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Category Name</label>
-                        <input name="Name" id="edit_name" class="form-control form-control-lg" required />
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Category Name</label>
+                        <input name="Name" id="edit_name" class="form-control form-control-lg bg-light border-0" style="font-size: 15px;" required />
+                        <small id="error-edit-name" class="text-danger d-none mt-2 fw-semibold">
+                            <i class="bi bi-exclamation-circle me-1"></i> Please enter a valid name.
+                        </small>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-dark">Update</button>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-soft px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark px-4" style="border-radius: 8px;">Save</button>
                 </div>
             </form>
         </div>
@@ -118,52 +140,91 @@
         var myModal = new bootstrap.Modal(document.getElementById('editModal'));
         myModal.show();
     }
-</script>
 
-<script>
-    // --- 1. XỬ LÝ THÔNG BÁO TỪ SERVER (Thành công / Lỗi) ---
-    // Lấy dữ liệu từ TempData mà Controller gửi sang
-    var errorMsg = '@TempData["ErrorMessage"]';
-    var successMsg = '@TempData["SuccessMessage"]';
-
-    // Nếu có lỗi (Ví dụ: Xóa category đang có con) -> Hiện Popup Đỏ
-    if (errorMsg) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Cannot Delete!',
-            text: errorMsg,
-            confirmButtonColor: '#000', 
-            confirmButtonText: 'OK'
-        });
-    }
-
-    // Nếu thành công -> Hiện Popup Xanh
-    if (successMsg) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: successMsg,
-            confirmButtonColor: '#28a745', // Màu xanh lá
-            confirmButtonText: 'OK'
-        });
-    }
-
-    // --- 2. XỬ LÝ NÚT XÓA (Hỏi trước khi làm) ---
+    // Hàm xác nhận Xóa 
     function deleteConfirm(id) {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You want to delete this Category?",
+            title: 'Delete Category?',
+            text: "This action cannot be undone. Are you sure?",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33', // Màu đỏ cho nút Xóa
-            cancelButtonColor: '#6c757d', // Màu xám cho nút Hủy
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'Cancel'
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#9ca3af', 
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'rounded-4', 
+                confirmButton: 'rounded-3 fw-bold',
+                cancelButton: 'rounded-3 fw-bold'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Nếu người dùng bấm Yes -> Chuyển hướng sang hàm Delete của Controller
                 window.location.href = '/Admin/Category/Delete/' + id;
             }
-        })
+        });
     }
+
+    //xử lí khi lòa trang x
+    document.addEventListener("DOMContentLoaded", function() {
+
+        var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+        var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+        if (successMsg) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: successMsg,
+                showConfirmButton: false,
+                timer: 2000,
+                customClass: { popup: 'rounded-4' }
+            });
+        }
+
+        if (errorMsg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: errorMsg,
+                confirmButtonColor: '#2b3445', 
+                customClass: { popup: 'rounded-4', confirmButton: 'rounded-3 fw-bold' }
+            });
+        }
+
+        //Hàm kiểm tra Validation
+        function validateCategory(e, inputId, errorId) {
+            const nameInput = document.getElementById(inputId);
+            const errorElement = document.getElementById(errorId);
+
+            if (!nameInput || !errorElement) return;
+
+            nameInput.classList.remove('is-invalid');
+            errorElement.classList.add('d-none');
+
+            if (nameInput.value.trim() === "") {
+                e.preventDefault();
+                nameInput.classList.add('is-invalid');
+                errorElement.classList.remove('d-none');
+                nameInput.focus();
+            }
+        }
+
+        //Gán sự kiện
+        document.getElementById('createCategoryForm')?.addEventListener('submit', function(e) {
+            validateCategory(e, 'create_name', 'error-create-name');
+        });
+
+        document.getElementById('editCategoryForm')?.addEventListener('submit', function(e) {
+            validateCategory(e, 'edit_name', 'error-edit-name');
+        });
+
+        //Xóa lỗi khi gõ
+        ['create_name', 'edit_name'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const errId = (id === 'create_name') ? 'error-create-name' : 'error-edit-name';
+                document.getElementById(errId)?.classList.add('d-none');
+            });
+        });
+    });
 </script>

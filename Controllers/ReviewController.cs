@@ -1,9 +1,9 @@
 ﻿using ECommerceClothing.Data;
 using ECommerceClothing.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting; // Thêm cái này để xử lý lưu file ảnh
+using Microsoft.AspNetCore.Hosting;  
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // ✅ LỖI NẰM Ở ĐÂY NÈ: Bắt buộc phải có dòng này mới dùng được FirstOrDefaultAsync
+using Microsoft.EntityFrameworkCore;  
 using System.Security.Claims;
 using System;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ECommerceClothing.Controllers
 {
-    [Authorize] // Bắt buộc phải đăng nhập mới được đánh giá
+    [Authorize]  
     public class ReviewController : Controller
     {
         private readonly AppDbContext _context;
@@ -23,16 +23,15 @@ namespace ECommerceClothing.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpPost]
-        // Lưu ý: Nếu file Model của ní tên là "Review" (số ít) thì sửa chữ "Reviews" bên dưới thành "Review" nhé.
+        [HttpPost] 
         public async Task<IActionResult> SubmitFeedback(Reviews model)
         {
-            // 1. Lấy ID của User đang đăng nhập
+            //Lấy ID của User đang đăng nhập
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             model.UserId = userId;
             model.CreatedAt = DateTime.Now;
 
-            // 2. Kiểm tra xem khách có up ảnh không? Nếu có thì lưu vào thư mục wwwroot/images/reviews
+            //Kiểm tra xem khách có up ảnh hay k
             if (model.ImageFile != null)
             {
                 // Tạo thư mục nếu chưa có
@@ -40,27 +39,22 @@ namespace ECommerceClothing.Controllers
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Tạo tên file độc nhất (tránh trùng tên)
+                } 
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.ImageFile.FileName;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Copy file vào thư mục
+                 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await model.ImageFile.CopyToAsync(fileStream);
                 }
-
-                // Gán đường dẫn vào DB
+                 
                 model.ImageUrl = "/images/reviews/" + uniqueFileName;
             }
 
-            // 3. Lưu toàn bộ dữ liệu (Sao, Comment, Link Ảnh) vào Database
+            //Lưu toàn bộ dữ liệu vào Database
             _context.Reviews.Add(model);
             await _context.SaveChangesAsync();
-
-            // 4. Báo thành công (Đã đổi sang Tiếng Anh) và đá khách hàng về lại trang Lịch sử đơn hàng
+             
             TempData["SuccessMessage"] = "Thank you for your feedback!";
 
             return RedirectToAction("MyOrders", "Profile");

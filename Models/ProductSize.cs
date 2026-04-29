@@ -15,9 +15,10 @@ namespace ECommerceClothing.Models
         public Product Product { get; set; }
 
         [Required]
-        public string SizeName { get; set; } // VD: S, M, L, XL
+        public string SizeName { get; set; }  
 
-        [Required]
-        public int Quantity { get; set; } // Tồn kho của cái size này
+        [Required] 
+        [Range(0, int.MaxValue, ErrorMessage = "The quantity of each size must not be a negative number.")]
+        public int Quantity { get; set; }
     }
 }

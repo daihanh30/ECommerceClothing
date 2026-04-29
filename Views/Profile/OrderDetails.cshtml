@@ -75,7 +75,7 @@
                     @if (Model.OrderInfo.DiscountAmount > 0)
                     {
                         <div class="d-flex justify-content-between mb-2 text-danger">
-                            <span>Discount (@Model.OrderInfo.VoucherCode)</span>
+                            <span>Discount (@(Model.OrderInfo.Voucher?.Code ?? "N/A"))</span>
                             <span>- @Model.OrderInfo.DiscountAmount.ToString("N0") VND</span>
                         </div>
                     }

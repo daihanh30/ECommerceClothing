@@ -8,12 +8,15 @@ namespace ECommerceClothing.Models
         [Key]
         public int Id { get; set; }
 
-        public string UserId { get; set; } // ID của người dùng (từ hệ thống đăng nhập)
+        public string UserId { get; set; } 
+
+        [ForeignKey("UserId")]
+        public virtual AppUser User { get; set; }
 
         public string FullName { get; set; }
         public string PhoneNumber { get; set; }
-        public string Address { get; set; } // Địa chỉ cụ thể
+        public string Address { get; set; } 
 
-        public bool IsDefault { get; set; } // Đánh dấu là địa chỉ mặc định
+        public bool IsDefault { get; set; } 
     }
 }

@@ -2,14 +2,14 @@
 using ECommerceClothing.Helpers;
 using ECommerceClothing.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+
 
 namespace ECommerceClothing.Controllers
 {
@@ -18,7 +18,6 @@ namespace ECommerceClothing.Controllers
     {
         private readonly AppDbContext _context;
 
-        // Cấu hình MoMo (Giữ nguyên của ní)
         string endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
         string partnerCode = "MOMOBKUN20180529";
         string accessKey = "klm05TvNBzhg7h7j";
@@ -28,258 +27,458 @@ namespace ECommerceClothing.Controllers
 
         public CheckoutController(AppDbContext context) { _context = context; }
 
-        // Thêm tham số bool checkoutAll = false
+        // Checout Page - Hiển thị thông tin đơn hàng trước khi đặt, có 2 luồng vào: Buy Now và Tick chọn từ giỏ hàng
         [Route("Checkout")]
-        public async Task<IActionResult> Index(List<string>? selectedItems, int? buyNowId, string size, int qty = 1, bool checkoutAll = false)
+        [HttpGet]
+        public async Task<IActionResult> Index(int? buyNowId, string? size, int qty = 1)
         {
-            var checkoutCart = new List<CartItem>();
-            var fullCart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
+            //Lấy dữ liệu an toàn từ URL
+            var rawItems = HttpContext.Request.Query["selectedItems"].ToList();
+            var selectedItems = new List<string>();
+            foreach (var raw in rawItems)
+            {
+                if (!string.IsNullOrEmpty(raw)) selectedItems.AddRange(raw.Split(',').Select(x => x.Trim()));
+            }
 
-            // TRƯỜNG HỢP 1: MUA NGAY (Bypass giỏ hàng)
+            var checkoutCart = new List<CartItem>();
+
+            //Buy Now 
             if (buyNowId.HasValue && !string.IsNullOrEmpty(size))
             {
-                var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == buyNowId);
-                if (product != null)
-                {
-                    checkoutCart.Add(new CartItem { ProductId = product.Id, ProductName = product.Name, Price = product.Price, Size = size, Quantity = qty, ProductImage = product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png" });
-                }
+                checkoutCart.Add(new CartItem { ProductId = buyNowId.Value, Size = size, Quantity = qty });
             }
-            // TRƯỜNG HỢP 2: TỪ TRANG CART CHÍNH CÓ TICK CHỌN
+            // tick sản phẩm từ giỏ
             else if (selectedItems != null && selectedItems.Any())
             {
                 foreach (var itemStr in selectedItems)
                 {
                     var parts = itemStr.Split('|');
-                    if (parts.Length == 2 && int.TryParse(parts[0], out int pId))
+
+                    if (parts.Length >= 2 && int.TryParse(parts[0], out int pId))
                     {
-                        var s = parts[1];
-                        var item = fullCart.FirstOrDefault(c => c.ProductId == pId && c.Size == s);
-                        if (item != null) checkoutCart.Add(item);
+                        var s = parts[1].Trim().ToLower();
+                        int q = 1;
+
+                        // Lấy Quantity trực tiếp từ form gửi lên 
+                        if (parts.Length >= 3) int.TryParse(parts[2], out q);
+
+                        checkoutCart.Add(new CartItem { ProductId = pId, Size = s, Quantity = q });
                     }
                 }
             }
-            // 👉 TRƯỜNG HỢP 3: BẤM TỪ MINI-CART (Lấy tất cả sản phẩm)
-            else if (checkoutAll)
-            {
-                if (fullCart.Count == 0) return RedirectToAction("Index", "Home");
-                checkoutCart = fullCart; // Bốc hết 4 món vào
-            }
-            // TRƯỜNG HỢP 4: MUA LẠI HOẶC LOAD LẠI TRANG
             else
             {
                 var savedCheckout = HttpContext.Session.Get<List<CartItem>>("CheckoutItems");
-                if (savedCheckout != null && savedCheckout.Any())
-                {
-                    checkoutCart = savedCheckout;
-                }
-                else
-                {
-                    if (fullCart.Count == 0) return RedirectToAction("Index", "Home");
-                    checkoutCart = fullCart;
-                }
+                if (savedCheckout != null && savedCheckout.Any()) checkoutCart = savedCheckout;
             }
 
-            if (checkoutCart.Count == 0) return RedirectToAction("Index", "Cart");
+            if (checkoutCart.Count == 0)
+            {
+                TempData["ErrorMessage"] = "Please select at least one product to proceed with checkout.";
+                return RedirectToAction("Index", "Cart");
+            }
 
-            // Lưu lại để lúc bấm PlaceOrder nó bốc đúng đồ đi lưu DB
-            HttpContext.Session.Set("CheckoutItems", checkoutCart);
+            var cartItemViewModels = new List<CartItemViewModel>();
+            decimal totalAmount = 0;
 
-            var checkoutModel = new CheckoutViewModel { CartItems = new List<CartItemViewModel>() };
+            //Truy xuất DB để lấy giá và kiểm tra tồn kho 
             foreach (var item in checkoutCart)
             {
-                checkoutModel.CartItems.Add(new CartItemViewModel { ProductName = item.ProductName, Price = item.Price, Quantity = item.Quantity, Size = item.Size, ProductImage = item.ProductImage });
+                var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == item.ProductId);
+                if (product == null) continue;
+
+                var pSize = await _context.ProductSizes.FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.SizeName == item.Size);
+
+                if (pSize == null && !string.IsNullOrEmpty(item.Size)) return BadRequest("Size không tồn tại");
+
+                if (pSize != null)
+                {
+                    if (pSize.Quantity <= 0) return BadRequest($"{product.Name} (Size {item.Size}) is out of stock.");
+                    if (pSize.Quantity < item.Quantity) return BadRequest($"Only {pSize.Quantity} products remain for {product.Name} (Size: {item.Size})");
+                }
+
+                cartItemViewModels.Add(new CartItemViewModel
+                {
+                    ProductName = product.Name,
+                    Price = product.Price,
+                    Quantity = item.Quantity,
+                    Size = item.Size,
+                    ProductImage = product.Images?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png"
+                });
+
+                totalAmount += product.Price * item.Quantity;
             }
-            checkoutModel.TotalAmount = checkoutModel.CartItems.Sum(x => x.Price * x.Quantity);
+
+            HttpContext.Session.Set("CheckoutItems", checkoutCart);
+
+            var checkoutModel = new CheckoutViewModel
+            {
+                CartItems = cartItemViewModels,
+                TotalAmount = totalAmount
+            };
+            //load lại tọa độ map 
+            ViewBag.ShopLocation = await _context.ShopSettings.FirstOrDefaultAsync();
+
             return View(checkoutModel);
         }
 
+        // XỬ LÝ ĐẶT HÀNG use Transaction
         [HttpPost]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
-            //ModelState.Clear();
-            // Lấy danh sách thực tế đã chốt ở bước Index
             var checkoutCart = HttpContext.Session.Get<List<CartItem>>("CheckoutItems") ?? new List<CartItem>();
             if (checkoutCart.Count == 0) return RedirectToAction("Index", "Home");
 
-            // Tính toán lại tổng tiền dựa trên danh sách chốt
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Tính toán tiền và kiểm tra Voucher (Đoạn này chỉ là tính toán trên bộ nhớ tạm)
             decimal realTotalAmount = 0;
             foreach (var item in checkoutCart)
             {
-                realTotalAmount += (item.Price * 1000) * item.Quantity;
+                var p = await _context.Products.FindAsync(item.ProductId);
+                if (p != null) realTotalAmount += (p.Price * 1000) * item.Quantity;
             }
 
-            decimal finalTotal = realTotalAmount + model.ShippingFee - model.DiscountAmount;
-            if (finalTotal < 0) finalTotal = 0;
+            decimal serverCalculatedDiscount = 0;
+            int? appliedVoucherId = null;
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var order = new Order
-            {
-                UserId = userId,
-                ShippingFee = model.ShippingFee,
-                TotalAmount = finalTotal,
-                DiscountAmount = model.DiscountAmount,
-                VoucherCode = model.VoucherCode,
-                Address = model.Address,
-                FullName = model.FullName,
-                PhoneNumber = model.PhoneNumber,
-                PaymentMethod = model.PaymentMethod,
-                OrderDate = DateTime.Now,
-
-                // 👉 ĐÃ SỬA: Nếu là MoMo thì để Unpaid, nếu là COD thì để Pending
-                Status = model.PaymentMethod == "MoMo" ? "Unpaid" : "Pending",
-
-                Note = model.Note ?? ""
-            };
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            // 2. LƯU CHI TIẾT ĐƠN HÀNG & TRỪ KHO
-            foreach (var item in checkoutCart)
-            {
-                var detail = new OrderDetail
-                {
-                    OrderId = order.Id,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    Size = item.Size,
-                    Price = item.Price
-                };
-                _context.OrderDetail.Add(detail);
-
-                // Trừ kho theo Size
-                var pSize = await _context.ProductSizes
-                    .FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.SizeName == item.Size);
-                if (pSize != null)
-                {
-                    pSize.Quantity -= item.Quantity;
-                    if (pSize.Quantity < 0) pSize.Quantity = 0;
-                }
-
-                // Cập nhật tổng kho
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product != null) product.Stock -= item.Quantity;
-            }
-
-            // 3. Cập nhật Voucher
             if (!string.IsNullOrEmpty(model.VoucherCode))
             {
-                var appliedVoucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == model.VoucherCode.ToUpper());
-                if (appliedVoucher != null)
+                var v = await _context.Vouchers.FirstOrDefaultAsync(x => x.Code == model.VoucherCode.ToUpper());
+                var now = DateTime.Now;
+
+                if (v != null && v.IsActive && now >= v.StartDate && now <= v.EndDate && v.UsedCount < v.Quantity)
                 {
-                    appliedVoucher.UsedCount += 1;
-                    _context.Vouchers.Update(appliedVoucher);
+                    decimal minOrderReal = v.MinOrder;
+                    if (realTotalAmount >= minOrderReal)
+                    {
+                        var userUsedCount = await _context.Orders.CountAsync(o => o.UserId == userId && o.VoucherId == v.Id && !o.Status.Contains("Cancelled"));
+                        if (userUsedCount < v.UsageLimitPerUser)
+                        {
+                            if (v.Type == "Percent")
+                            {
+                                serverCalculatedDiscount = realTotalAmount * v.Value;
+                                decimal maxReduceReal = v.MaxReduce;
+                                if (v.MaxReduce > 0 && serverCalculatedDiscount > maxReduceReal) serverCalculatedDiscount = maxReduceReal;
+                            }
+                            else
+                            {
+                                serverCalculatedDiscount = v.Value;
+                            }
+                            v.UsedCount += 1;
+                            appliedVoucherId = v.Id;
+                        }
+                        else { return BadRequest("You have reached the usage limit for this discount code."); }
+                    }
+                    else { return BadRequest("Order minimum total not met."); }
                 }
+                else { return BadRequest("Discount code is invalid or expired."); }
             }
 
-            await _context.SaveChangesAsync();
+            if (serverCalculatedDiscount > realTotalAmount) serverCalculatedDiscount = realTotalAmount;
+            decimal finalTotal = realTotalAmount + model.ShippingFee - serverCalculatedDiscount;
+            if (finalTotal < 0) finalTotal = 0;
 
-            // 4. DỌN DẸP GIỎ HÀNG
-            var mainCart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
-            // Chỉ xóa những món vừa thanh toán xong ra khỏi giỏ hàng chính
-            foreach (var item in checkoutCart)
+            //TRANSACTION
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var itemInMain = mainCart.FirstOrDefault(x => x.ProductId == item.ProductId && x.Size == item.Size);
-                if (itemInMain != null) mainCart.Remove(itemInMain);
-            }
-            HttpContext.Session.Set("Cart", mainCart);
-            HttpContext.Session.Remove("CheckoutItems"); // Xóa danh sách tạm
+                //Lưu đơn hàng chính trc ở lấy Id để lưu chi tiết sau
+                var order = new Order
+                {
+                    UserId = userId,
+                    ShippingFee = model.ShippingFee,
+                    TotalAmount = finalTotal,
+                    DiscountAmount = serverCalculatedDiscount,
+                    VoucherId = appliedVoucherId,
+                    Address = model.Address,
+                    FullName = model.FullName,
+                    PhoneNumber = model.PhoneNumber,
+                    PaymentMethod = model.PaymentMethod,
+                    OrderDate = DateTime.Now,
+                    Status = model.PaymentMethod == "MoMo" ? "Unpaid" : "Pending",
+                    Note = model.Note ?? ""
+                };
 
-            if (model.PaymentMethod == "MoMo")
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                // lưu chi tiết đơn hàng và trừ kho, nếu có lỗi sẽ dễ dàng rollback hơn
+                foreach (var item in checkoutCart)
+                {
+                    var p = await _context.Products.FindAsync(item.ProductId);
+
+                    _context.OrderDetail.Add(new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        Size = item.Size,
+                        Price = p?.Price ?? 0
+                    });
+
+                    // Trừ kho theo Size
+                    var pSize = await _context.ProductSizes
+                        .FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.SizeName == item.Size);
+
+                    if (pSize != null)
+                    {
+                        // Kiểm tra kho lần cuối ngay trước khi lưu, đề phòng có người vừa mua chớp nhoáng
+                        if (pSize.Quantity < item.Quantity)
+                        {
+                            throw new Exception($"Product {p?.Name} (Size: {item.Size}) is out of stock.!");
+                        }
+                        pSize.Quantity = Math.Max(0, pSize.Quantity - item.Quantity);
+                    }
+                }
+                // Lưu chi tiết và số lượng kho mới
+                await _context.SaveChangesAsync(); 
+
+                // Xóa sp đã đặt ở giỏ hàng sau khi đặt thành công 
+                var mainCart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
+                foreach (var item in checkoutCart)
+                {
+                    var itemInMain = mainCart.FirstOrDefault(x => x.ProductId == item.ProductId && x.Size == item.Size);
+                    if (itemInMain != null) mainCart.Remove(itemInMain);
+                }
+                HttpContext.Session.Set("Cart", mainCart);
+                HttpContext.Session.Remove("CheckoutItems");
+
+                // nếu mọi thứ chạy được thì đến đây mới lưu vào db
+                await transaction.CommitAsync();
+                if (model.PaymentMethod == "MoMo")
+                {
+                    return await ProcessMoMoPayment(order, finalTotal);
+                }
+
+                return RedirectToAction("Success", new { id = order.Id });
+            }
+            catch (Exception ex)
             {
-                return RedirectToAction("PaymentMock", new { orderId = order.Id, amount = finalTotal });
-            }
+                // nếu có lỗi sẽ k lưu vào db
+                await transaction.RollbackAsync();
 
-            return RedirectToAction("Success", new { id = order.Id });
+                TempData["ErrorMessage"] = "An error occurred during the ordering process: " + ex.Message;
+                return RedirectToAction("Index", "Cart");
+            }
         }
 
-        // --- CÁC HÀM CÒN LẠI (PaymentMock, ConfirmPayment, Success, Vouchers...) GIỮ NGUYÊN ---
-        public IActionResult PaymentMock(int orderId, decimal amount)
+        //api kiểm tra voucher
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableVouchers()
         {
-            ViewBag.OrderId = orderId;
-            ViewBag.Amount = amount;
-            return View();
+            var now = DateTime.Now;
+
+            var vouchers = await _context.Vouchers
+                .Where(v => v.IsPublic == true
+                         && v.IsActive == true
+                         && v.StartDate <= now
+                         && v.EndDate >= now
+                         && v.UsedCount < v.Quantity)
+                .OrderByDescending(v => v.Id)
+                .ToListAsync();
+
+            var resultData = vouchers.Select(v => new
+            {
+                id = v.Id,
+                code = v.Code,
+                title = v.Title ?? "Voucher",
+                desc = v.Description ?? "No description",
+                date = v.EndDate.ToString("dd/MM/yyyy HH:mm"),
+                min_order = v.MinOrder,
+                max_reduce = v.MaxReduce,
+                type = v.Type == "Percent" ? "percent" : "fixed",
+                value = v.Value
+            }).ToList();
+
+            return Json(new { success = true, data = resultData });
         }
 
-        public async Task<IActionResult> ConfirmPayment(int orderId)
+        [HttpPost]
+        public async Task<IActionResult> ApplyVoucher(string code, decimal orderTotal)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-            if (order != null)
+            if (string.IsNullOrEmpty(code))
+                return Json(new { success = false, message = "Please enter the discount code." });
+
+            var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == code.ToUpper());
+            if (voucher == null || !voucher.IsActive)
+                return Json(new { success = false, message = "The discount code does not exist or has been locked." });
+
+            var now = DateTime.Now;
+            if (now < voucher.StartDate)
+                return Json(new { success = false, message = $"This code is only valid from {voucher.StartDate:dd/MM/yyyy HH:mm}." });
+            if (now > voucher.EndDate)
+                return Json(new { success = false, message = "This discount code has expired." });
+            if (voucher.UsedCount >= voucher.Quantity)
+                return Json(new { success = false, message = "The code usage limit has been reached." });
+
+            if (orderTotal < voucher.MinOrder)
+                return Json(new { success = false, message = $"Minimum order to apply this code is {voucher.MinOrder:#,##0}." });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userUsedCount = await _context.Orders.CountAsync(o => o.UserId == userId && o.VoucherId == voucher.Id && !o.Status.Contains("Cancelled"));
+            if (userUsedCount >= voucher.UsageLimitPerUser)
+                return Json(new { success = false, message = "You have used up all your uses of this discount code." });
+
+            decimal discount = voucher.Type == "Percent" ? (orderTotal * voucher.Value) : voucher.Value;
+            if (voucher.Type == "Percent" && voucher.MaxReduce > 0 && discount > voucher.MaxReduce) discount = voucher.MaxReduce;
+            if (discount > orderTotal) discount = orderTotal;
+
+            return Json(new { success = true, discount = discount, message = "Code applied successfully!" });
+        }
+
+        //Momo API
+
+        //Hàm tạo Request gửi sang MoMo để lấy link QR Code
+        private async Task<IActionResult> ProcessMoMoPayment(Order order, decimal finalTotal)
+        {
+            string orderInfo = "Pay for your NIXONE order #" + order.Id;
+            string amount = Math.Round(finalTotal).ToString();
+
+            string orderId = order.Id.ToString() + "_" + DateTime.Now.Ticks.ToString();
+            string requestId = Guid.NewGuid().ToString();
+            string extraData = "";
+
+            // Xây dựng chuỗi dữ liệu gốc để băm bảo mật
+            string rawHash = "accessKey=" + accessKey +
+                             "&amount=" + amount +
+                             "&extraData=" + extraData +
+                             "&ipnUrl=" + notifyUrl +
+                             "&orderId=" + orderId +
+                             "&orderInfo=" + orderInfo +
+                             "&partnerCode=" + partnerCode +
+                             "&redirectUrl=" + returnUrl +
+                             "&requestId=" + requestId +
+                             "&requestType=captureWallet";
+
+            string signature = ComputeHmacSha256(rawHash, secretKey);
+
+            var requestData = new
+            {
+                partnerCode = partnerCode,
+                partnerName = "NIXONE",
+                storeId = "MomoTestStore",
+                requestId = requestId,
+                amount = amount,
+                orderId = orderId,
+                orderInfo = orderInfo,
+                redirectUrl = returnUrl,
+                ipnUrl = notifyUrl,
+                lang = "en",
+                extraData = extraData,
+                requestType = "captureWallet",
+                signature = signature
+            };
+
+            // Bắn HTTP Request sang MoMo
+            using HttpClient client = new HttpClient();
+            var content = new StringContent(JsonSerializer.Serialize(requestData), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(endpoint, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Đọc JSON MoMo trả về để lấy link payUrl
+            var jsonResponse = JsonDocument.Parse(responseString);
+            if (jsonResponse.RootElement.TryGetProperty("payUrl", out var payUrlElement))
+            {
+                string payUrl = payUrlElement.GetString();
+                return Redirect(payUrl); 
+            }
+
+            TempData["ErrorMessage"] = "MoMo payment gateway connection error. Please try again.";
+            return RedirectToAction("Index", "Cart");
+        }
+
+        // quay lại sau khi thanh toán xong, momo trả về đây
+        [HttpGet]
+        public async Task<IActionResult> PaymentCallback()
+        {
+            // MoMo sẽ nhét các kết quả thanh toán vào URL (QueryString)
+            var collection = HttpContext.Request.Query;
+
+            string orderIdStr = collection["orderId"]; 
+            string resultCode = collection["resultCode"];
+
+            if (string.IsNullOrEmpty(orderIdStr)) return RedirectToAction("Index", "Home");
+
+            // Cắt chuỗi để lấy lại cái ID đơn hàng thực tế  
+            int realOrderId = int.Parse(orderIdStr.Split('_')[0]);
+            var order = await _context.Orders.FindAsync(realOrderId);
+
+            if (order == null) return NotFound();
+
+            if (resultCode == "0")
             {
                 order.Status = "Paid";
                 await _context.SaveChangesAsync();
+
+                return RedirectToAction("Success", new { id = realOrderId });
             }
-            return RedirectToAction("Success", new { id = orderId });
+            else
+            {
+                order.Status = "Cancelled";
+
+                var orderDetails = await _context.OrderDetail.Where(od => od.OrderId == realOrderId).ToListAsync();
+                foreach (var item in orderDetails)
+                {
+                    var pSize = await _context.ProductSizes.FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.SizeName == item.Size);
+                    if (pSize != null) pSize.Quantity += item.Quantity; 
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["ErrorMessage"] = "MoMo payment failed or the transaction was canceled by you.";
+                return RedirectToAction("Index", "Cart");
+            }
         }
 
-        public IActionResult Success(int id)
+        //PAY NOW
+        [HttpGet]
+        public async Task<IActionResult> RetryPayment(int orderId)
         {
-            ViewBag.OrderId = id;
-            return View();
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var order = await _context.Orders
+                    .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+
+                if (order == null)
+                {
+                    TempData["ErrorMessage"] = "Order not found or access denied!";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                if (order.Status.ToUpper() != "UNPAID")
+                {
+                    TempData["ErrorMessage"] = "This order has already been paid or cancelled.";
+                    return RedirectToAction("Index", "Profile");
+                }
+
+                return await ProcessMoMoPayment(order, order.TotalAmount);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Index", "Profile"); 
+            }
         }
 
+        // 3. Hàm thuật toán mã hóa chữ ký điện tử 
         private string ComputeHmacSha256(string message, string secretKey)
         {
             var keyBytes = Encoding.UTF8.GetBytes(secretKey);
             var messageBytes = Encoding.UTF8.GetBytes(message);
             using (var hmacsha256 = new HMACSHA256(keyBytes))
             {
-                var hashmessage = hmacsha256.ComputeHash(messageBytes);
-                return BitConverter.ToString(hashmessage).Replace("-", "").ToLower();
+                var hashMessage = hmacsha256.ComputeHash(messageBytes);
+                return BitConverter.ToString(hashMessage).Replace("-", "").ToLower();
             }
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAvailableVouchers()
+            
+        public IActionResult Success(int id)
         {
-            var now = DateTime.Now;
-            var vouchers = await _context.Vouchers
-                .Where(v => v.IsActive && v.IsPublic && v.StartDate <= now && v.EndDate >= now && v.UsedCount < v.Quantity)
-                .Select(v => new {
-                    id = v.Id.ToString(),
-                    code = v.Code,
-                    type = v.Type.ToLower(),
-                    value = v.Value,
-                    max_reduce = v.MaxReduce,
-                    min_order = v.MinOrder,
-                    title = v.Title,
-                    desc = v.Description,
-                    date = v.EndDate.ToString("dd/MM/yyyy")
-                })
-                .ToListAsync();
-
-            return Json(new { success = true, data = vouchers });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> CheckManualVoucher(string code)
-        {
-            if (string.IsNullOrEmpty(code))
-                return Json(new { success = false, msg = "Please enter a promo code!" });
-
-            var now = DateTime.Now;
-            var v = await _context.Vouchers.FirstOrDefaultAsync(x => x.Code == code.ToUpper() && x.IsActive);
-
-            if (v == null) return Json(new { success = false, msg = "Invalid or inactive promo code." });
-            if (v.StartDate > now || v.EndDate < now) return Json(new { success = false, msg = "This code is expired." });
-            if (v.UsedCount >= v.Quantity) return Json(new { success = false, msg = "This code is fully redeemed." });
-
-            return Json(new
-            {
-                success = true,
-                data = new
-                {
-                    id = v.Id.ToString(),
-                    code = v.Code,
-                    type = v.Type.ToLower(),
-                    value = v.Value,
-                    max_reduce = v.MaxReduce,
-                    min_order = v.MinOrder,
-                    title = v.Title,
-                    desc = v.Description,
-                    date = v.EndDate.ToString("dd/MM/yyyy")
-                }
-            });
+            ViewBag.OrderId = id;
+            return View();
         }
     }
 }
