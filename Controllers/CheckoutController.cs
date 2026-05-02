@@ -27,10 +27,10 @@ namespace ECommerceClothing.Controllers
 
         public CheckoutController(AppDbContext context) { _context = context; }
 
-        // Checout Page - Hiển thị thông tin đơn hàng trước khi đặt, có 2 luồng vào: Buy Now và Tick chọn từ giỏ hàng
+        // Checout 
         [Route("Checkout")]
         [HttpGet]
-        public async Task<IActionResult> Index(int? buyNowId, string? size, int qty = 1)
+        public async Task<IActionResult> Index(int? buyNowId, string? size, int qty = 1, bool checkoutAll = false)
         {
             //Lấy dữ liệu an toàn từ URL
             var rawItems = HttpContext.Request.Query["selectedItems"].ToList();
@@ -56,13 +56,39 @@ namespace ECommerceClothing.Controllers
 
                     if (parts.Length >= 2 && int.TryParse(parts[0], out int pId))
                     {
-                        var s = parts[1].Trim().ToLower();
+                        var s = parts[1].Trim().ToUpper();
                         int q = 1;
 
                         // Lấy Quantity trực tiếp từ form gửi lên 
                         if (parts.Length >= 3) int.TryParse(parts[2], out q);
 
                         checkoutCart.Add(new CartItem { ProductId = pId, Size = s, Quantity = q });
+                    }
+                }
+            }
+            else if (checkoutAll)
+            {
+                // 1. Lấy UserId của người dùng đang đăng nhập
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    // 2. Truy xuất giỏ hàng từ Database
+                    var dbCartItems = await _context.CartItems
+                                                    .Where(c => c.UserId == currentUserId)
+                                                    .ToListAsync();
+
+                    if (dbCartItems != null && dbCartItems.Any())
+                    {
+                        foreach (var item in dbCartItems)
+                        {
+                            checkoutCart.Add(new CartItem
+                            {
+                                ProductId = item.ProductId,
+                                Size = item.Size,
+                                Quantity = item.Quantity
+                            });
+                        }
                     }
                 }
             }
@@ -111,9 +137,14 @@ namespace ECommerceClothing.Controllers
 
             HttpContext.Session.Set("CheckoutItems", checkoutCart);
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Truy vấn thông tin User từ DB
+            var currentUser = await _context.Users.FindAsync(userId);
             var checkoutModel = new CheckoutViewModel
             {
                 CartItems = cartItemViewModels,
+                FullName = currentUser?.FullName,
+                PhoneNumber = currentUser?.PhoneNumber,
                 TotalAmount = totalAmount
             };
             //load lại tọa độ map 
@@ -232,16 +263,22 @@ namespace ECommerceClothing.Controllers
                     }
                 }
                 // Lưu chi tiết và số lượng kho mới
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
                 // Xóa sp đã đặt ở giỏ hàng sau khi đặt thành công 
-                var mainCart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
                 foreach (var item in checkoutCart)
                 {
-                    var itemInMain = mainCart.FirstOrDefault(x => x.ProductId == item.ProductId && x.Size == item.Size);
-                    if (itemInMain != null) mainCart.Remove(itemInMain);
+                    var cartItemDb = await _context.CartItems
+                        .FirstOrDefaultAsync(c => c.UserId == userId
+                                               && c.ProductId == item.ProductId
+                                               && c.Size == item.Size);
+
+                    if (cartItemDb != null)
+                    {
+                        _context.CartItems.Remove(cartItemDb);
+                    }
                 }
-                HttpContext.Session.Set("Cart", mainCart);
+                await _context.SaveChangesAsync();
                 HttpContext.Session.Remove("CheckoutItems");
 
                 // nếu mọi thứ chạy được thì đến đây mới lưu vào db
@@ -265,34 +302,69 @@ namespace ECommerceClothing.Controllers
 
         //api kiểm tra voucher
         [HttpGet]
+        // [Authorize] // Bạn có thể thêm attribute này nếu trên đầu Controller chưa có
         public async Task<IActionResult> GetAvailableVouchers()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Bắt lỗi ngay từ đầu nếu mất session/chưa đăng nhập
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại." });
+            }
+
             var now = DateTime.Now;
 
+            // 1. Lấy danh sách voucher hợp lệ
             var vouchers = await _context.Vouchers
                 .Where(v => v.IsPublic == true
                          && v.IsActive == true
                          && v.StartDate <= now
                          && v.EndDate >= now
                          && v.UsedCount < v.Quantity)
-                .OrderByDescending(v => v.Id)
                 .ToListAsync();
 
-            var resultData = vouchers.Select(v => new
+            // Tối ưu: Nếu không có voucher nào khả dụng thì trả về luôn, đỡ phải query bảng Orders
+            if (!vouchers.Any())
             {
-                id = v.Id,
-                code = v.Code,
-                title = v.Title ?? "Voucher",
-                desc = v.Description ?? "No description",
-                date = v.EndDate.ToString("dd/MM/yyyy HH:mm"),
-                min_order = v.MinOrder,
-                max_reduce = v.MaxReduce,
-                type = v.Type == "Percent" ? "percent" : "fixed",
-                value = v.Value
+                return Json(new { success = true, data = new List<object>() });
+            }
+
+            var voucherIds = vouchers.Select(v => v.Id).ToList();
+
+            // 2. Query thẳng số lần dùng của User hiện tại (không cần if bọc ngoài nữa)
+            var userUsages = await _context.Orders
+                .Where(o => o.UserId == userId
+                         && o.VoucherId != null
+                         && voucherIds.Contains(o.VoucherId.Value)
+                         && !o.Status.Contains("Cancelled"))
+                .GroupBy(o => o.VoucherId.Value)
+                .Select(g => new { VoucherId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.VoucherId, x => x.Count);
+
+            // 3. Chuẩn bị dữ liệu trả về cho Frontend
+            var resultData = vouchers.Select(v => {
+                int currentUserUsedCount = userUsages.ContainsKey(v.Id) ? userUsages[v.Id] : 0;
+                bool isLimitReached = currentUserUsedCount >= v.UsageLimitPerUser;
+
+                return new
+                {
+                    id = v.Id,
+                    code = v.Code,
+                    title = v.Title ?? "Voucher",
+                    desc = v.Description ?? "No description",
+                    date = v.EndDate.ToString("dd/MM/yyyy HH:mm"),
+                    min_order = v.MinOrder,
+                    max_reduce = v.MaxReduce,
+                    type = v.Type == "Percent" ? "percent" : "fixed",
+                    value = v.Value,
+                    isLimitReached = isLimitReached
+                };
             }).ToList();
 
             return Json(new { success = true, data = resultData });
         }
+        
 
         [HttpPost]
         public async Task<IActionResult> ApplyVoucher(string code, decimal orderTotal)

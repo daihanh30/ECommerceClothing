@@ -66,7 +66,7 @@ body {
         margin-bottom: 6px;
     }
 
-/
+
 .sidebar-section {
     font-size: 11px;
     font-weight: 700;
@@ -637,10 +637,9 @@ body {
 }
 
 .form-control, .form-select {
-    color: #0f172a !important;  
-    border-color: #cbd5e1 !important; 
-
-.text-muted {
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
     color: #64748b !important; 
 }
 
@@ -649,6 +648,7 @@ body {
 }
 
 /*Vouchers*/
+
 .btn-custom-new {
     background-color: #10b981;
     color: white;
@@ -671,11 +671,11 @@ body {
     border-radius: 6px;
     font-weight: 500;
     transition: all 0.2s ease-in-out;  
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
-    white-space: nowrap !important;
+    white-space: nowrap;
 }
 
     .btn-custom-edit:hover {
@@ -690,11 +690,11 @@ body {
     border-radius: 6px;
     font-weight: 500;
     transition: all 0.2s ease-in-out; 
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
-    white-space: nowrap !important;
+    white-space: nowrap;
 }
 
     .btn-custom-delete:hover {
@@ -707,57 +707,63 @@ body {
 
     .table-custom th,
     .table-custom td {
-        border-left: none !important;
-        border-right: none !important;
-        border-color: #e2e8f0 !important;
+        border-left: none;
+        border-right: none;
+        border-color: #e2e8f0;
     }
 
     .table-custom thead th {
-        border-bottom: 2px solid #cbd5e1 !important;
+        border-bottom: 2px solid #cbd5e1;
         background-color: #f8fafc;
         color: #475569;
         font-weight: 600;
     }
-     
+
 .badge-soft {
-    padding: 6px 12px;
+    padding: 6px 12px ;
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.85rem;
     display: inline-block;
     text-align: center;
-    min-width: 85px;  
+    min-width: 85px;
 }
- 
+
 .badge-active {
     background-color: #e0e7ff;
     color: #4338ca;
-} 
+}
+
 .badge-expired {
     background-color: #fef3c7;
     color: #d97706;
-} 
+}
+
 .badge-outofstock {
-    background-color: #fee2e2;
-    color: #dc2626;
-} 
+    background-color: #fee2e2 ;
+    color: #dc2626 ;
+}
+
 .badge-disabled {
     background-color: #f3f4f6;
-    color: #374151;
-} 
-.badge-public {
-    background-color: #d1fae5;
-    color: #059669;
-} 
-.badge-hidden {
-    background-color: #f1f5f9;
-    color: #475569;
-} 
-.tab-custom-active {
-    color: #10b981 !important;  
-    font-weight: 700;
-    border-bottom: 2px solid #10b981 !important;
+    color: #374151 ;
 }
+
+.badge-public {
+    background-color: #d1fae5 ;
+    color: #059669 ;
+}
+
+.badge-hidden {
+    background-color: #f1f5f9 ;
+    color: #475569;
+}
+.tab-custom-active {
+    color: #10b981;  
+    font-weight: 700;
+    border-bottom: 2px solid #10b981;
+}
+
 
 /*Create voucher*/
 .btn-custom-new {

@@ -118,17 +118,17 @@
 
                                 <div class="pt-3 mt-3 border-top" style="border-top-style: dashed !important;">
                                     <div class="d-flex justify-content-between small text-muted mb-2">
-                                        <span class="text-uppercase" style="letter-spacing: 0.5px;">Subtotal</span>
+                                        <span style="letter-spacing: 0.5px;">Subtotal</span>
                                         <span class="fw-semibold">@((order.TotalAmount - order.ShippingFee + order.DiscountAmount).ToString("N0")) VND</span>
                                     </div>
                                     <div class="d-flex justify-content-between small text-muted mb-2">
-                                        <span class="text-uppercase" style="letter-spacing: 0.5px;">Shipping Fee</span>
+                                        <span style="letter-spacing: 0.5px;">Shipping Fee</span>
                                         <span class="fw-semibold">@order.ShippingFee.ToString("N0") VND</span>
                                     </div>
                                     @if (order.DiscountAmount > 0)
                                     {
-                                        <div class="d-flex justify-content-between small text-danger mb-0">
-                                            <span class="text-uppercase" style="letter-spacing: 0.5px;">Discount</span>
+                                        <div class="d-flex justify-content-between small mb-0" style="color: #00796b;">
+                                            <span style="letter-spacing: 0.5px;">Discount</span>
                                             <span class="fw-bold">- @order.DiscountAmount.ToString("N0") VND</span>
                                         </div>
                                     }
@@ -150,8 +150,8 @@
                     <div class="card-footer bg-light border-top px-4 py-3"> 
                         <div class="w-100 d-flex justify-content-between align-items-center">
                             <div class="text-start">
-                                <span class="small text-muted text-uppercase me-2" style="font-size: 0.75rem;">Total Amount:</span>
-                                <span class="fs-5 fw-bold text-danger">@order.TotalAmount.ToString("N0") VND</span>
+                                <span class="text-muted fw-medium me-2">Total:</span>
+                                <span class="fs-5 fw-bold text-dark">@order.TotalAmount.ToString("N0") VND</span>
                             </div>
 
                             <div class="d-flex gap-2">
@@ -248,7 +248,7 @@
     }
 }
 
-//thêm đánh giá mới
+
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">
@@ -309,7 +309,7 @@
     </div>
 </div>
 
-// xem lại đánh giá
+
 <div class="modal fade" id="viewReviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">
@@ -346,7 +346,7 @@
     </div>
 </div>
 
-// Cancel order
+
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-0 border-0 shadow-lg">

@@ -11,8 +11,6 @@
     </a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 @{
     var currentType = Context.Request.Query["type"].ToString();
 }
@@ -27,13 +25,13 @@
     <li class="nav-item">
         <a class="nav-link border-0 @(currentType == "public" ? "tab-custom-active" : "text-secondary fw-semibold")"
            asp-action="Vouchers" asp-route-type="public">
-            Public (List)
+            Public
         </a>
     </li>
     <li class="nav-item">
         <a class="nav-link border-0 @(currentType == "hidden" ? "tab-custom-active" : "text-secondary fw-semibold")"
            asp-action="Vouchers" asp-route-type="hidden">
-            Hidden (Code Only)
+            Hidden
         </a>
     </li>
 </ul>
@@ -135,6 +133,8 @@
 </div>
 
 @section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const Toast = Swal.mixin({
             toast: true,

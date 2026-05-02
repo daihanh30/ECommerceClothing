@@ -91,7 +91,9 @@ namespace ECommerceClothing.Areas.Admin.Controllers
             {
                 productsQuery = productsQuery.Where(p => p.ProductTypeObj.CategoryId == categoryId);
             }
-
+            var productList = productsQuery.ToList();
+            ViewBag.TotalProducts = productList.Count;
+            ViewBag.OutOfStock = productList.Count(p => p.ProductSizes.Sum(ps => ps.Quantity) <= 0);
             return View("Products", productsQuery.ToList());
         }
 

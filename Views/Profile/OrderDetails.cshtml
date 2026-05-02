@@ -65,24 +65,24 @@
             <div class="card shadow-sm border-0 rounded-0">
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal</span>
+                        <span>Subtotal:</span>
                         <span>@((Model.Subtotal * 1000).ToString("N0")) VND</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Shipping Fee</span>
+                        <span>Shipping Fee:</span>
                         <span>@Model.OrderInfo.ShippingFee.ToString("N0") VND</span>
                     </div>
                     @if (Model.OrderInfo.DiscountAmount > 0)
                     {
-                        <div class="d-flex justify-content-between mb-2 text-danger">
-                            <span>Discount (@(Model.OrderInfo.Voucher?.Code ?? "N/A"))</span>
-                            <span>- @Model.OrderInfo.DiscountAmount.ToString("N0") VND</span>
+                        <div class="d-flex justify-content-between mb-2 fw-medium" style="color: #00796b;">
+                            <span>Discount @(!string.IsNullOrEmpty(Model.OrderInfo.Voucher?.Code) ? $"({Model.OrderInfo.Voucher.Code})": ""):</span>
+                            <span>-@Model.OrderInfo.DiscountAmount.ToString("N0") VND</span>
                         </div>
                     }
                     <hr>
-                    <div class="d-flex justify-content-between fw-bold fs-5">
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-dark mt-3">
                         <span>TOTAL</span>
-                        <span class="text-danger">@Model.OrderInfo.TotalAmount.ToString("N0") VND</span>
+                        <span>@Model.OrderInfo.TotalAmount.ToString("N0") VND</span>
                     </div>
                 </div>
             </div>

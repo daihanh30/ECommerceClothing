@@ -44,6 +44,9 @@
                             <div id="addressSpinner" class="spinner-border spinner-border-sm text-secondary position-absolute d-none"
                                  style="top: 15px; right: 15px;" role="status">
                             </div>
+                            <small id="mapErrorMsg" class="text-danger d-none mt-1 fw-bold">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i> Address not found on the map. Please type a clearer address or drag the pin manually!
+                            </small>
                         </div>
 
                         <input type="hidden" id="inputLat" name="Latitude">
@@ -65,11 +68,14 @@
                                     Distance from shop: <span id="distanceDisplay" class="fw-bold text-dark">0 km</span>
                                 </div>
 
-                                <button id="btnLocation" type="button" onclick="getCurrentLocation()"
-                                        class="btn btn-sm btn-outline-dark">
-                                    📍 Use my location
-                                </button>
+                                <div class="text-end">
+                                    <button id="btnLocation" type="button" onclick="getCurrentLocation()"
+                                            class="btn btn-sm btn-outline-dark">
+                                        📍 Use my location
+                                    </button>
+                                </div>
                             </div>
+                            <div id="locationError" class="text-danger small mt-2 text-end" style="display: none;"></div>
                         </div>
 
                         <div class="mb-3">
@@ -319,11 +325,11 @@
                 let typingTimer;
                 const doneTypingInterval = 800;
                 //token
-                mapboxgl.accessToken = 'pk.eyJ1IjoiZGFpaGFuaDIwMyIsImEiOiJjbWw1Y3B1NWwwMTdpM2Rwd2dvMmpzMjl0In0.ZIaIf2-2DnuoeQxzocj-vA';
-                 const shopLat = @(ViewBag.ShopLocation?.Latitude ?? 10.7769);//nếu lỗi db thì vẫn có thể nhận đc tọa độ shop
-                 const shopLong = @(ViewBag.ShopLocation?.Longitude ?? 106.7009);
+                mapboxgl.accessToken = '@(ViewBag.ShopLocation?.MapboxToken)';
+                    const shopLat = parseFloat('@(ViewBag.ShopLocation?.Latitude ?? 10.7769)');
+                    const shopLong = parseFloat('@(ViewBag.ShopLocation?.Longitude ?? 106.7009)');
 
-                 const SHOP_LOCATION = [shopLong, shopLat];
+                    const SHOP_LOCATION = [shopLong, shopLat];
 
                 function showMapLoader() {
                     const loader = document.getElementById('addressSpinner');
@@ -337,7 +343,9 @@
                 function movePinToAddress(addressText) {
                     if (!map || !addressText) return;
 
-                    showMapLoader(); 
+                    showMapLoader();
+                    const errorLabel = document.getElementById('mapErrorMsg');
+                    if(errorLabel) errorLabel.classList.add('d-none');
 
                     let cleanQuery = addressText.replace(/Xã |Phường |Thị trấn |Huyện |Quận |Thị xã |Tỉnh |Thành phố /gi, "");
                     //gửi request đi gọi map
@@ -358,11 +366,13 @@
                                 });
                             } else {
                                 hideMapLoader();
+                                if(errorLabel) errorLabel.classList.remove('d-none');
                             }
                         })
                         .catch(err => {
                             console.error("Error Geocoding:", err);
                             hideMapLoader();
+                            if(errorLabel) errorLabel.classList.remove('d-none');
                         });
                 }
                 //tính toán phí ship dựa trên khoảng cách từ map
@@ -397,15 +407,17 @@
 
                 function getCurrentLocation() {
                     const btn = document.getElementById("btnLocation");
-                    if (!navigator.geolocation) {
-                        alert("Geolocation not supported");
+                    const errorDiv = document.getElementById("locationError")
+                    if (errorDiv) errorDiv.innerText = "";
+                        if (!navigator.geolocation) {
+                        if (errorDiv) errorDiv.innerText = "Geolocation not supported";
                         return;
                     }
 
                     btn.innerText = "⏳ Getting location...";
                     btn.disabled = true;
 
-                    navigator.geolocation.getCurrentPosition(
+                       navigator.geolocation.getCurrentPosition(
                         async (position) => {
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
@@ -413,7 +425,7 @@
                             map.flyTo({ center: [lng, lat], zoom: 16 });
                             marker.setLngLat([lng, lat]);
                             calculateShipping(lat, lng);
-                            //gọ api mapbox, gửi tọa độ, map trả về địa chỉ
+                            //gọi api mapbox, gửi tọa độ, map trả về địa chỉ
                             const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`;
                             const res = await fetch(url);
                             const data = await res.json();
@@ -427,15 +439,15 @@
 
                             btn.innerText = "Use my location";
                             btn.disabled = false;
-                        },
-                        (error) => {
-                            alert("Cannot get location");
-                            console.log(error);
-                            btn.innerText = "Use my location";
-                            btn.disabled = false;
-                        }
-                    );
-                }
+                         },
+                            (error) => {
+                                if (errorDiv) errorDiv.innerText = "Cannot get location";
+                                console.log(error);
+                                btn.innerText = "Use my location";
+                                btn.disabled = false;
+                            }
+                        );
+                    }
 
                 document.addEventListener("DOMContentLoaded", function() {
                     if (document.getElementById('miniMap')) {
@@ -462,6 +474,9 @@
                         mainAddressInput.addEventListener('input', function () {
                             clearTimeout(typingTimer);
                             const addressText = this.value.trim();
+
+                            const errorLabel = document.getElementById('mapErrorMsg');
+                            if(errorLabel) errorLabel.classList.add('d-none');
 
                             if (addressText.length > 5) {
                                 typingTimer = setTimeout(() => {
@@ -554,35 +569,63 @@
                 }
 
                 function renderVoucherList() {
-                    const container = document.getElementById('voucherListContainer');
-                    if (!container) return;
+                const container = document.getElementById('voucherListContainer');
+                if (!container) return;
 
-                    if (liveVouchers.length === 0) {
-                        container.innerHTML = '<div class="text-center text-muted p-3">No available vouchers at the moment.</div>';
-                        return;
+                if (liveVouchers.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted p-3">No available vouchers at the moment.</div>';
+                    return;
+                }
+
+                const subTotal = parseFloat(document.getElementById('subTotalDisplay').getAttribute('data-price')) || 0;
+
+                let sortedVouchers = [...liveVouchers].sort((a, b) => {
+                    let aDisabled = a.isLimitReached || subTotal < a.min_order;
+                    let bDisabled = b.isLimitReached || subTotal < b.min_order;
+                    return (aDisabled === bDisabled) ? 0 : aDisabled ? 1 : -1;
+                });
+
+                let html = '';
+                sortedVouchers.forEach(v => {
+                    let notEnoughTotal = subTotal < v.min_order;
+                    let isDisabled = v.isLimitReached || notEnoughTotal;
+
+                    let badgeHtml = '';
+                    if (v.isLimitReached) {
+                        badgeHtml = '<span class="badge bg-secondary ms-2" style="font-size: 0.7rem;"><i class="fa-solid fa-ban"></i> Used up</span>';
+                    } else if (notEnoughTotal) {
+                        badgeHtml = `<span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;"><i class="fa-solid fa-triangle-exclamation"></i> Min order: ${v.min_order.toLocaleString('vi-VN')}đ</span>`;
                     }
 
-                    let html = '';
-                    liveVouchers.forEach(v => {
+                    let disabledStyle = isDisabled ? 'opacity: 0.55; pointer-events: none; cursor: not-allowed;' : 'cursor: pointer;';
+                    let bgClass = isDisabled ? 'bg-light' : '';
+                    let radioDisabledAttr = isDisabled ? 'disabled' : '';
+
+                    let discountDisplay = v.type === 'percent' ? (v.value * 100) + '% OFF' : v.value.toLocaleString('vi-VN') + 'đ OFF';
+
                         html += `
-                            <label class="d-block w-100 cursor-pointer mb-2">
-                                <input type="radio" name="voucher" class="voucher-radio d-none"
-                                       value="${v.id}" onchange="selectTemp('${v.id}')">
-                                <div class="voucher-card-item border rounded p-2 d-flex justify-content-between align-items-center">
-                                    <div class="voucher-info">
-                                        <h6 class="mb-1 fw-bold">${v.title}</h6>
-                                        <p class="mb-1 small text-muted">${v.desc}</p>
-                                        <div class="expiry-date small text-secondary">
-                                            <i class="fa-regular fa-clock me-1"></i>Exp: ${v.date}
-                                        </div>
+                        <label class="d-block w-100 mb-2" style="${disabledStyle}">
+                            <input type="radio" name="voucher" class="voucher-radio d-none"
+                                   value="${v.id}" onchange="selectTemp('${v.id}')" ${radioDisabledAttr}>
+                            <div class="voucher-card-item border rounded p-2 d-flex justify-content-between align-items-center ${bgClass}">
+                                <div class="voucher-info">
+                                    <h6 class="mb-1 fw-bold" style="color: ${isDisabled ? '#6c757d' : '#0369a1'}">
+                                        ${v.title}
+                                        ${badgeHtml}
+                                    </h6>
+                                    <p class="mb-1 small text-muted">${v.desc}</p>
+                                    <div class="expiry-date small text-secondary">
+                                        <i class="fa-regular fa-clock me-1"></i>Exp: ${v.date}
                                     </div>
-                                    <div class="custom-radio-circle border rounded-circle" style="width: 20px; height: 20px;"></div>
                                 </div>
-                            </label>
-                        `;
-                    });
-                    container.innerHTML = html;
-                }
+                                <div class="custom-radio-circle border rounded-circle ${isDisabled ? 'bg-secondary bg-opacity-25 border-secondary' : ''}" style="width: 20px; height: 20px;"></div>
+                            </div>
+                        </label>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
 
                 function selectTemp(id) {
                 tempSelectedVoucher = liveVouchers.find(v => v.id == id);

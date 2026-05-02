@@ -173,29 +173,34 @@ namespace ECommerceClothing.Controllers
             try
             {
                 var userId = _userManager.GetUserId(User);
+
                 var order = await _context.Orders
                     .Include(o => o.OrderDetails)
-                        .ThenInclude(od => od.Product)
-                            .ThenInclude(p => p.Images)
                     .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
 
                 if (order == null) return Json(new { success = false, msg = "Order not found!" });
 
-                var cart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
-                var preTickedItems = new List<string>(); 
+                var preTickedItems = new List<string>();
+
+                var dbCartItems = await _context.CartItems
+                                                .Where(c => c.UserId == userId)
+                                                .ToListAsync();
 
                 foreach (var detail in order.OrderDetails)
                 {
-                    var existingItem = cart.FirstOrDefault(x => x.ProductId == detail.ProductId && x.Size == detail.Size);
+                    // Kiểm tra xem trong DB đã có sản phẩm này với size này chưa
+                    var existingItem = dbCartItems.FirstOrDefault(x => x.ProductId == detail.ProductId && x.Size == detail.Size);
 
                     if (existingItem != null)
-                    { 
+                    {
                         existingItem.Quantity += detail.Quantity;
                     }
                     else
-                    {  
-                        cart.Add(new CartItem
+                    {
+                        // Thêm mới vào DB
+                        _context.CartItems.Add(new CartItem
                         {
+                            UserId = userId, 
                             ProductId = detail.ProductId,
                             Size = detail.Size,
                             Quantity = detail.Quantity
@@ -204,7 +209,7 @@ namespace ECommerceClothing.Controllers
                     preTickedItems.Add($"{detail.ProductId}|{detail.Size}");
                 }
 
-                HttpContext.Session.Set("Cart", cart);
+                await _context.SaveChangesAsync();
 
                 TempData["PreTickedItems"] = string.Join(",", preTickedItems);
 

@@ -8,12 +8,13 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0">Manage Products</h2>
 
-    <div class="d-flex gap-2">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="CreateProduct" class="btn btn-custom-new">
-            <i class="bi bi-plus-lg"></i> New
-        </a>
+    <div class="d-flex align-items-stretch gap-2">
 
-        <form method="get">
+        <div class="border rounded px-3 d-flex align-items-center text-dark text-nowrap" style="background-color: #f8f9fa;">
+            Products: @ViewBag.TotalProducts <span class="mx-2 text-secondary">|</span> Out of Stock: <span class="text-danger ms-1">@ViewBag.OutOfStock</span>
+        </div>
+
+        <form method="get" class="m-0 d-flex">
             <select name="categoryId" class="form-select" onchange="this.form.submit()">
                 <option value="">All Categories</option>
                 @if (ViewBag.Categories != null)
@@ -27,6 +28,11 @@
                 }
             </select>
         </form>
+
+        <a asp-area="Admin" asp-controller="Admin" asp-action="CreateProduct" class="btn btn-custom-new d-flex align-items-center">
+            <i class="bi bi-plus-lg me-1"></i> New
+        </a>
+
     </div>
 </div>
 
